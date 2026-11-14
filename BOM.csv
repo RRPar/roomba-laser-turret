@@ -1,0 +1,62 @@
+category,item,spec,qty,used_in,approx_unit_usd,notes
+printed,base.stl,"~163 g each (291.5 cm3); PLA, 4 perimeters, 20% gyroid, 0.2 mm",1,"pan housing: 2x 6810 hub, pan motor plate, stop groove, pan hall",0,orientation: upside down: top plate (z 98) on the bed; supports: no
+printed,bay.stl,"~196 g each (351.0 cm3); PLA, 3 perimeters, 15-20% gyroid, 0.2 mm",1,electronics tray + rear panel + fan,0,orientation: floor on the bed (as modelled); supports: no
+printed,turntable.stl,"~65 g each (86.8 cm3); PLA/PETG, 5 perimeters, 40% gyroid, 0.16 mm",1,85T pan gear + bearing spigot,0,"orientation: gear top (z 110) on the bed, spigot up; supports: no"
+printed,yoke.stl,"~72 g each (115.6 cm3); PLA/PETG, 4 perimeters, 35% gyroid, 0.2 mm",1,"deck + arms, 608 pockets, tilt motor pocket, tilt stops",0,"orientation: deck on the bed, arms vertical; supports: no"
+printed,payload.stl,"~91 g each (163.8 cm3); PLA/PETG, 4 perimeters, 25-30% gyroid, 5 top/bottom",1,tilting head: camera + laser,0,"orientation: rear face (x -30) on the bed, laser bore vertical; supports: no"
+printed,tilt_gear.stl,"~22 g each (29.6 cm3); PLA/PETG, 5 perimeters, 40% gyroid, 0.16 mm",1,51T tilt wheel bolted to the payload,0,"orientation: -Y face on the bed, counterbores + magnet pocket up; supports: no"
+printed,pinion.stl,"~4 g each (3.1 cm3); PETG preferred (on the motor shaft), 100% infill, 0.12-0.16 mm",2,"17T pinion, pan and tilt motors",0,"orientation: nut-slot face on the bed, axis vertical; supports: no"
+printed,pan_motor_plate.stl,"~11 g each (12.2 cm3); PETG preferred (touches the motor), 4 perimeters, 50%",1,pan NEMA17 carrier (mesh slots),0,orientation: top face (z 92) on the bed; supports: no
+printed,tilt_motor_plate.stl,"~8 g each (8.7 cm3); PETG preferred (touches the motor), 4 perimeters, 50%",1,tilt NEMA17 carrier (mesh slots),0,orientation: outer face (y 53) on the bed; supports: no
+printed,pan_collar.stl,"~5 g each (4.8 cm3); PLA/PETG, 4 perimeters, 60%",1,clamps the lower 6810 inner race,0,orientation: top face (z 72) on the bed; supports: no
+printed,tilt_spacer.stl,"~0.9 g each (0.7 cm3); PLA/PETG, 100% infill",2,"M8 axle stack, payload ring to 608 inner race (mirror one for -Y; it is symmetric)",0,orientation: standing on an end; supports: no
+printed,axle_collar.stl,"~0.1 g each (0.1 cm3); PLA/PETG, 100% infill (or steel 8 x 11.5 x 2 shims)",2,under the M8 head and the nylock,0,orientation: flat; supports: no
+printed,beam_stop.stl,"~2 g each (1.8 cm3); BLACK/opaque filament, 100% infill",1,laser exit cap (fit during assembly/testing),0,orientation: end face on the bed; supports: no
+printed,gear_test.stl,~4 g each (5.7 cm3); same filament + settings as the gears; print FIRST,1,backlash test coupon (not part of the machine),0,"orientation: flat, plate down; supports: no"
+mechanical,NEMA17 stepper,"17HS4401-class, 1.8 deg, 40 mm body, 1.5-1.7 A, 5 mm D-shaft >= 24 mm, M3 holes 31 mm",2,pan (base) + tilt (+Y yoke arm),10.0,pan pinion top flush with the shaft end; tilt pinion 12 mm from the motor face
+mechanical,6810-2RS ball bearing,"50 x 65 x 7 mm, sealed",2,pan hub in the base (back-to-back),7.0,
+mechanical,608-2RS ball bearing,"8 x 22 x 7 mm, sealed",2,"tilt axle, outside pockets of both yoke arms",1.0,
+fastener,M8 x 120 hex bolt,ISO 4014 partial thread (thread 22 mm),1,tilt axle,1.5,grip = 2 collars 4 + 2x 608 14 + 2 spacers 30 + payload with rings 62 = 110 mm; + nylock 8 + 2 mm past the nut = 120
+fastener,M8 nylock nut,DIN 985,1,"tilt axle, +Y end",0.2,no washers: the printed axle_collars (OD 11.5) replace them; a DIN 125 M8 washer (OD 16) would rub the 608 shields
+fastener,M3 x 50 socket head cap screw,ISO 4762,4,bay floor -> base post inserts,0.25,driven up from the counterbored bay floor; 5.5 mm into the insert
+fastener,M3 x 8 socket head cap screw,ISO 4762,16,"4 deck->turntable, 4 pan plate->base top, 4 tilt motor->tilt plate, 4 tilt plate->arm",0.08,deck/base-top heads counterbored; tilt plate ears from outside (+Y)
+fastener,M3 x 6 socket head cap screw,ISO 4762,16,"4 pan motor->pan plate, 4 SKR Pico, 8 buck + laser driver",0.07,"pan motor: CAD comment says M3x8, which needs >= 5.5 mm deep motor threads; 17HS4401 holes are usually 4.5 mm deep, so M3x6 (3.4 mm engagement)"
+fastener,M3 x 10 socket head cap screw,ISO 4762,3,pan_collar -> turntable spigot,0.08,self-taps the 2.6 mm holes (no inserts); heads stay proud under the collar
+fastener,M3 x 12 socket head cap screw,ISO 4762,3,51T tilt wheel -> payload inserts,0.09,heads counterbored in the wheel +Y face
+fastener,M3 x 16 socket head cap screw,ISO 4762,4,40 mm fan -> bay +Y wall,0.1,"through 3 mm wall + 10 mm fan, nut inside"
+fastener,M3 hex nut,ISO 4032,6,"4 fan screws, 2 captive in the pinions",0.03,
+fastener,"M3 x 4 set screw, cup point",ISO 4029,2,pinion grub screws (one per pinion),0.1,1.5 mm hex key through a tooth gap; M3x3 also works
+fastener,"M3 x 12 set screw, nylon tip",nylon-tipped grub screw,1,laser clamp (payload top face insert),0.3,an M3x10 does not reach the module; do not overtighten (1.85 mm wall to the axle bore)
+fastener,M2.5 x 6 pan-head screw,self-tapping or machine screw cutting its own thread,4,Raspberry Pi 5 -> bay standoffs (2.2 mm holes),0.1,
+fastener,M2 x 6 pan-head screw,self-tapping or machine screw cutting its own thread,4,Camera Module 3 -> payload front recess (1.8 mm holes),0.1,
+fastener,M3 heat-set insert,"M3 x 5, OD 4.6 (hole 4.2)",32,"base 4, pan_motor_plate 4, turntable 4, yoke 4, payload 4, bay 12 (SKR 4 + buck/driver 8)",0.15,buy a pack of 50
+mechanical,Neodymium disc magnet,"6 x 3 mm, N35 or stronger",2,pan: turntable underside r 42; tilt: wheel +Y face r 26,0.2,south pole toward the A3144 branded face; glue with CA/epoxy
+mechanical,"Rubber foot, self-adhesive","<= 10 mm diameter, ~3-5 mm tall",4,bay floor recesses (d 10 x 1 mm) at +-80 mm,0.25,
+consumable,Zip tie,2.5 x 100 mm,10,"deck anchor 1, deck camera-link pad 2, bay pad 2, bay anchor post 2, spares",0.03,pad tunnels are 4 x 1.9 mm
+consumable,Tether cord,"~150 mm, <= 3.5 mm",1,beam_stop tab (4 mm hole) -> yoke,0.1,keeps the cap at hand
+consumable,PLA filament (+ ~30 g PETG optional),"1.75 mm, 1 kg spool",1,all printed parts,20.0,PETG preferred for pinions + motor plates (motor heat)
+electronics,Raspberry Pi 5,4 GB (2 GB is enough for control; 4 GB for vision),1,"bay +Y standoffs (58 x 49, M2.5)",70.0,price varies
+electronics,Raspberry Pi Camera Module 3,"standard lens (not Wide), 15-pin FPC",1,"payload front recess, connector edge DOWN",25.0,rotate the image 180 deg in software
+electronics,Camera FFC 15-pin 1.0 mm pitch,"150 mm, same-side contacts as the extender requires",1,camera -> deck camera-link adapter (bends with tilt only),2.0,
+electronics,CSI-to-HDMI camera extender pair,"passive, carries all 15 CSI lines",1,deck pad (yoke) + bay pad,12.0,the camera FFC must not cross the pan axis (twist fatigue); verify the boards fit the 28 x 22 x 9 envelope
+electronics,Slim HDMI cable,"OD <= 6 mm, 0.5 m",1,deck adapter -> spigot bore -> bay adapter,7.0,plug passes the 30 mm deck hole
+electronics,Pi 5 camera cable 22-pin (0.5 mm) to 15-pin (1.0 mm),200 mm,1,bay camera-link adapter -> Pi 5 CAM port,3.0,short: the long run through the pan axis is the round HDMI cable
+electronics,microSD card,"32 GB, A1/A2",1,Raspberry Pi 5,8.0,
+electronics,Raspberry Pi 5 Active Cooler,official,1,Pi 5 (optional; the bay fan blows over it),5.0,optional
+electronics,BTT SKR Pico V1.0,RP2040 + 4x TMC2209 (UART),1,bay -Y standoffs; USB-C/power edge faces +X,30.0,"pan = X driver, tilt = Y driver; laser TTL on the Laser header (IO20), never use FAN3"
+electronics,USB-A to USB-C cable,0.3 m,1,Pi 5 <-> SKR Pico,4.0,data link; leave the SKR USB-power jumper off
+electronics,Hall sensor A3144,"unipolar, open collector, TO-92",2,"pan: base top pocket r 42; tilt: +Y arm inner face [0,45,191]",0.3,needs 4.5-24 V supply: run it from 5 V
+electronics,Resistor 10 k,1/4 W,3,"2 hall pull-ups to 3.3 V, 1 laser-TTL pull-down",0.05,never pull the hall outputs up to 5 V
+power/safety,12 V -> 5 V buck converter,"5 A (25 W) continuous, fixed 5.1 V",1,"bay front, y < 0 (30 x 30 insert grid)",8.0,mount on a perfboard if its holes do not match 30 x 30
+power/safety,Laser TTL driver,"12 V input, TTL/PWM enable, output matched to the module",1,"bay front, y > 0 (30 x 30 insert grid)",6.0,its 12 V SUPPLY goes through the e-stop + key switch
+power/safety,Laser module (DEFAULT),"Class 2 (< 1 mW) 650 nm red dot, 12 mm OD x <= 35 mm, thin flexible leads",1,payload laser bore,6.0,the bore accepts other 12 mm modules; see ASSEMBLY.md laser safety before fitting anything above Class 2
+power/safety,12 V power supply,"12 V 5 A (60 W), 5.5 x 2.1 mm plug, UL/CE listed",1,panel barrel jack,15.0,budget ~43 W worst case (see BOM.md)
+power/safety,Panel barrel jack,"5.5 x 2.1 mm, M11 thread",1,bay rear panel (11.4 mm hole),1.5,
+power/safety,Inline fuse holder + fuse,5 A slow-blow,1,right after the barrel jack,3.0,
+power/safety,Key switch,"19 mm, 2 positions, NC contact, key removable in OFF",1,"bay rear panel (19.5 mm hole), laser supply",8.0,
+power/safety,Emergency stop,"16 mm, latching red mushroom (~30 mm head), positive-opening NC, 2 NC blocks preferred",1,bay rear panel (16.5 mm hole),10.0,"NC #1 laser supply, NC #2 motor supply"
+power/safety,40 mm fan,"40 x 40 x 10 mm, 12 V",1,"bay +Y wall, blowing in",4.0,"wire to 12 V or SKR FAN1/FAN2, never FAN3"
+wiring,Silicone wire 18 AWG,"red + black, 1 m each",1,"12 V main: jack, fuse, e-stop, key, buck, SKR VIN",4.0,
+wiring,Silicone wire 24 AWG,"3-4 colours, 2 m each",1,"hall sensors, laser leads, fan, TTL",6.0,tilt hall + laser leads run up the pan bore
+wiring,Connector + heat-shrink kit,"JST-XH 2.54 crimps/housings, Dupont, heat-shrink",1,all,8.0,
+wiring,Perfboard,50 x 70 mm,2,adapter plates for the buck / laser driver (only if needed),1.0,optional
