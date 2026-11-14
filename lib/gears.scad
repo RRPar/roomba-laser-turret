@@ -46,12 +46,12 @@ function _twist(m, z, h, helix) = h * tan(helix) / (m * z / 2) * 180 / PI;
 module herringbone(m, z, w, helix = 20, pa = 20, backlash = 0.15) {
     tw = _twist(m, z, w / 2, helix);
     slices = max(4, ceil(w / 0.8));
-    linear_extrude(height = w / 2 + 0.001, twist = tw, slices = slices, convexity = 10)
+    // upper half = exact mirror of the lower half, so the two share the mid-plane face
+    // vertex-for-vertex (an overlap left sliver faces at the tooth tips -> non-manifold STL)
+    module half() linear_extrude(height = w / 2, twist = tw, slices = slices, convexity = 10)
         gear2d(m, z, pa, backlash);
-    translate([0, 0, w / 2])
-        rotate([0, 0, -tw])
-            linear_extrude(height = w / 2, twist = -tw, slices = slices, convexity = 10)
-                gear2d(m, z, pa, backlash);
+    half();
+    translate([0, 0, w]) mirror([0, 0, 1]) half();
 }
 
 // Pinion phase so its teeth interleave with a wheel whose tooth 0 is on +X.

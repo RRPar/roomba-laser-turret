@@ -22,13 +22,17 @@ module bearing(b) {
 }
 
 // Raspberry Pi Camera Module 3: PCB in the YZ plane, lens pointing +X,
-// origin = optical axis at the PCB front face.
+// origin = optical axis at the PCB front face. Drawn as MOUNTED on the payload:
+// connector edge DOWN (-Z), FPC connector on the back at that edge.
 module picam3() {
-    color("green") translate([-picam3_board[2], -picam3_board[0]/2, -picam3_board[1]/2 - 2.5])
-        cube([picam3_board[2], picam3_board[0], picam3_board[1]]);   // lens sits 2.5 above board centre
-    color("black") translate([0, -picam3_lens_block[0]/2, -picam3_lens_block[1]/2])
+    zb = -picam3_lens_from_conn;   // board bottom (connector) edge
+    color("green") translate([-picam3_board[2], -picam3_board[0]/2, zb])
+        cube([picam3_board[2], picam3_board[0], picam3_board[1]]);
+    color("#222") translate([0, -picam3_lens_block[0]/2, -picam3_lens_block[1]/2])
         cube([picam3_lens_block[2], picam3_lens_block[0], picam3_lens_block[1]]);
-    color("black") translate([0, 0, 0]) rotate([0, 90, 0]) cylinder(h = picam3_lens_block[2] + 3, d = 7, $fn = 32);
+    color("#111") rotate([0, 90, 0]) cylinder(h = 6.98, d = 5.75, $fn = 32);   // lens tip 6.98 proud
+    color("ivory") translate([-picam3_board[2] - picam3_conn[2], -picam3_conn[0]/2, zb])
+        cube([picam3_conn[2], picam3_conn[0], picam3_conn[1]]);
 }
 
 // 12 mm laser module: axis along +X, origin = rear face centre, emitter at +laser_len.
@@ -41,5 +45,14 @@ module board(sz, h = 18, c = "seagreen") { color(c) cube([sz[0], sz[1], h]); }
 
 module fan40() { color("#333") difference() { cube(fan40); translate([20, 20, -1]) cylinder(h = 12, d = 37); } }
 
-// M8 axle bolt along Y, centred on origin.
-module m8_axle(len = 110) { color("silver") rotate([90, 0, 0]) cylinder(h = len, d = 8, center = true, $fn = 32); }
+// M8 tilt axle along Y, origin = tilt axis at y 0 (params: tilt_axle). Hex head on -Y bearing on
+// the -Y axle_collar (y -55), nylock on +Y on the +Y collar (y 55..63), shank to y -55 + len.
+// Head / nut drawn as round envelopes (d = across corners): they turn with tilt.
+module m8_axle(len = tilt_axle_len) {
+    yc = tilt_brg_y[1] + axle_collar[1];          // 55: collar outer faces
+    color("silver") {
+        translate([0, -yc, 0]) rotate([-90, 0, 0]) cylinder(h = len, d = 8, $fn = 32);
+        translate([0, -yc, 0]) rotate([90, 0, 0]) cylinder(h = m8_head[1], d = m8_head[0] / cos(30), $fn = 32);
+        translate([0, yc, 0]) rotate([-90, 0, 0]) cylinder(h = m8_nylock[1], d = m8_nylock[0] / cos(30), $fn = 32);
+    }
+}
