@@ -1,19 +1,24 @@
-# laser-gimbal
+# roomba-laser-turret
 
-An original, fully 3D-printable **dual-axis (pan/tilt) gear-driven gimbal** that carries a **Raspberry Pi
-Camera Module 3** and a **12 mm laser module** on one tilting head. Two NEMA17 steppers drive printed
-herringbone gears (5:1 pan, 3:1 tilt). A Raspberry Pi 5 handles vision and a BTT SKR Pico handles
-motion. All of the electronics live in a square bay under the round pan housing, and everything is modelled
-in plain OpenSCAD with no external libraries.
+A 330 mm driving robot base styled after the original roomba-turret model, carrying an original, fully
+3D-printable **dual-axis (pan/tilt) gear-driven gimbal** on its lid. The gimbal carries a **Raspberry Pi Camera
+Module 3** and a **12 mm laser module** on one tilting head. Two NEMA17 steppers drive printed herringbone
+gears (5:1 pan, 3:1 tilt). A Raspberry Pi 5 handles vision and a BTT SKR Pico handles motion. The base drives
+on two gear-motor wheels with a Cytron driver and a Pico wheel controller. Everything is 3D-printed except the
+bought parts, and everything is modelled in plain OpenSCAD with no external libraries.
 
 The default laser is a **Class 2 (< 1 mW) red dot**. Read the laser safety section in
-[ASSEMBLY.md](ASSEMBLY.md#laser-safety) before building.
+[ASSEMBLY.md](ASSEMBLY.md#laser-safety) before building. The e-stop also cuts the drive motors on the robot.
 
 ## Renders
 
 | Assembly (pan -20, tilt 15) | Side (tilt 45, beam stop fitted) | Exploded |
 |---|---|---|
 | ![front](renders/assembly_front.png) | ![side](renders/assembly_side.png) | ![exploded](renders/exploded.png) |
+
+| Robot front (pan -20, tilt 15) | Robot inside (lid off) | Robot exploded |
+|---|---|---|
+| ![robot front](renders/robot_front.png) | ![robot inside](renders/robot_inside.png) | ![robot exploded](renders/robot_exploded.png) |
 
 | Base | Bay | Yoke | Payload |
 |---|---|---|---|
@@ -41,8 +46,24 @@ The default laser is a **Class 2 (< 1 mW) red dot**. Read the laser safety secti
 | Cable path | 38 mm bore through the pan axis; the camera crosses it as a round HDMI cable (CSI-to-HDMI extender pair), not a twisted FFC |
 | Electronics | Raspberry Pi 5, BTT SKR Pico (4x TMC2209), 12 V 5 A input, 12->5 V 5 A buck, laser TTL driver, 40 mm fan |
 | Safety hardware | latching e-stop + key switch in the laser driver's **supply**, 5 A fuse, beam_stop cap |
-| Printing | 14 STL files (16 machine pieces + 1 test coupon), about 650 g PLA/PETG, **no supports**, 250 x 250 bed |
-| Cost | about $318 in parts ([BOM.md](BOM.md)) |
+| Gimbal printing | 14 STL files (16 machine pieces + 1 test coupon), about 650 g PLA/PETG, **no supports**, 250 x 250 bed |
+| Cost | about $318 for the gimbal parts (estimates, [BOM.md](BOM.md)) |
+
+## Robot base
+
+The base is a 330 mm round body (the original model's shape, scaled about 2.75x). Its details are in
+`lib/robot_params.scad`, and the full build is in [ASSEMBLY.md](ASSEMBLY.md#robot-base).
+
+| | |
+|---|---|
+| Body | 330 mm diameter (`rb_R` 165). Lid top at 80 mm. Total height about 285 mm with the gimbal (80 mm deck + 204 mm gimbal at tilt 0) |
+| Drive | 2x JGA25-370 12 V 170 rpm gear motors with Hall encoders (11 PPR at the motor), on 65 mm wheels with TPU tyres (95A), track 256 mm |
+| Stability | axle 20 mm behind the pan axis, so the gimbal's weight sits forward on the caster and the robot does not rock back. A front ball caster (3/4 in) and a rear printed skid |
+| Power | 3S2P 18650 pack (11.1 V nominal, about 78 Wh) with a 3S 20 A BMS. 10 A fuse, KCD1 rocker main switch, 5.5 x 2.1 charge jack (12.6 V 2 A charger) |
+| Control | Cytron MDD3A motor driver and a Raspberry Pi Pico as wheel controller. The Pi 5 talks to it over USB |
+| Bumper | sprung front bumper band with 2 lever microswitches, and a VL53L1X ToF sensor behind a window |
+| Lid | 16 mm illuminated "home" button, groove ring on top, rounded top edge |
+| Checks | the browser viewer: stability margin 13.8 mm minimum, mass 2.67 kg |
 
 ## Building the files
 
@@ -54,6 +75,7 @@ make                      # every parts/<name>.scad -> stl/<name>.stl, then vali
 make stl/yoke.stl         # one part
 make check                # tools/check_stl.py on existing STLs: watertight, one body, on z = 0, fits the bed
 make renders              # renders/assembly_front.png, assembly_side.png, exploded.png (OpenCSG preview)
+make robot-renders        # renders/robot_front.png, robot_inside.png, robot_exploded.png
 make interference         # tools/interference.sh: pair/pose collision sweep, gear-mesh slices, hard stops, hex-key access
 make viewer               # export the assembly for the browser viewer (viewer/meshes/)
 make view                 # serve the viewer at http://localhost:8000
@@ -106,6 +128,9 @@ wheel end faces share y = 41).
 lib/params.scad        interface contract: world frame, Z stack, every shared dimension, wiring notes
 lib/gears.scad         involute gear2d(), herringbone(), mesh_phase() (no external libraries)
 lib/vitamins.scad      purchased-part placeholders for assembly/interference only (never printed)
+robot.scad             full robot: driving base + gimbal on the lid (robot frame, pan/tilt args as assembly.scad)
+lib/robot_params.scad  robot base interface contract: body, lid, drive, power, bumper, wiring notes, masses
+lib/robot_vitamins.scad robot purchased-part placeholders (motors, pack, boards, caster) for checks only
 parts/base.scad        pan housing: 6810 hub, motor-plate slots, pan stop groove, pan hall pocket
 parts/bay.scad         electronics tray: standoffs, panel (e-stop / key / jack), fan, vents, cable anchor
 parts/turntable.scad   85T herringbone + bearing spigot, deck inserts, pan magnet, pan stop dog
@@ -120,6 +145,20 @@ parts/axle_collar.scad M8 head/nut collar (print 2)
 parts/payload.scad     tilting head: camera recess, laser bore + clamp, stop lug, axle bore
 parts/beam_stop.scad   opaque push-fit cap for the laser exit collar
 parts/gear_test.scad   backlash test coupon (print first)
+parts/robot_floor_front.scad  floor plate quadrant, front; left/rear/right `use` it (print 1 each, 4 total)
+parts/robot_lid_fl.scad       lid quadrant, front-left: skin, rounded edge, bosses, bumper hardware (print 1 each, 4 total)
+parts/robot_pillar.scad       support pillar, floor to lid mount boss (print 4)
+parts/robot_motor_bracket.scad JGA25 saddle clamp on the floor, mirror pair (print 2)
+parts/robot_motor_strap.scad  half-ring strap over each motor can (print 4)
+parts/robot_wheel_hub.scad    wheel hub, D-bore + set screw, PETG (print 2)
+parts/robot_tire.scad         TPU 95A tyre on the hub (print 2)
+parts/robot_batt_tray.scad    battery tray for the 3S2P pack (print 1)
+parts/robot_ebay_tray.scad    rear electronics tray: MDD3A, Pico, fuse (print 1)
+parts/robot_caster_mount.scad front ball caster mount (print 1)
+parts/robot_bumper_left.scad  front bumper, left half 0 to +80 deg (print 1)
+parts/robot_bumper_right.scad front bumper, right half, mirror of left (print 1)
+parts/robot_bumper_splice.scad bumper splice plate behind the 0-degree joint (print 1)
+legacy/roomba-turret/  original decorative model (roomba_turret.scad, .stl, preview.png); the robot is styled after it
 assembly.scad          full machine at any pan/tilt, exploded view
 tools/check_stl.py     STL validator used by make
 tools/interference.sh  collision / mesh / hard-stop / tool-access checks
@@ -137,10 +176,12 @@ its print orientation on z = 0. Each part file's only top-level statement is `<n
 
 ## Status
 
-All 14 STLs pass `make check`, `make interference` reports no collisions, and the browser viewer's checks
-pass 6/6. Nothing has been printed yet:
-measure your bearings, motors, camera and boards against `lib/params.scad`, and print `gear_test` first
-to tune `gear_backlash`.
+All 33 STLs pass `make check` (14 gimbal, 19 robot base). The browser viewer's checks pass 9/9, including the
+stability margin (13.8 mm minimum) and the robot mass (2.67 kg). The robot's total height is about 285 mm.
+
+**Nothing has been printed yet.** This is a prerelease for untested hardware. Measure your bearings, motors,
+camera, boards, battery and wheels against `lib/params.scad` and `lib/robot_params.scad`, and print `gear_test`
+first to tune `gear_backlash`.
 
 ## Credits
 

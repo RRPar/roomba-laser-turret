@@ -36,8 +36,8 @@ to get the tooth thickness right.
 
 ## 2. Print settings
 
-0.4 mm nozzle, PLA or PETG, **no supports on any part**. Every overhang in the CAD is 45 deg or less, and the
-horizontal holes over 6 mm are capped teardrops. Use at least 4 perimeters (1.6 mm) on every part with
+0.4 mm nozzle, PLA or PETG, **no supports on any gimbal part**. Every overhang in the CAD is 45 deg or less, and the
+horizontal holes over 6 mm are capped teardrops. The robot base has its own print notes in [Robot base](#robot-base). Use at least 4 perimeters (1.6 mm) on every part with
 inserts or tapped holes, so they sit in solid walls.
 
 | Part | Qty | Orientation | Layer | Walls / infill | Notes |
@@ -279,7 +279,9 @@ example Klipper with two `manual_stepper`s: `rotation_distance: 360` with `gear_
 ## 12. Close up, home and test
 
 1. Lower the base onto the bay so the cylinder sits on the ledge and the corner lips centre it. Tip the
-   unit on its side and drive 4x **M3 x 50** up through the floor counterbores into the base post inserts.
+   unit on its side and drive 4x **M3 x 60** (DIN 912) up through the floor counterbores into the base post inserts.
+   The tips land where the old M3 x 50 did. On the robot base the four M3 x 60 go in from under the lid instead
+   (see [Robot base](#robot-base)).
 2. First power-up: **beam_stop fitted, key OUT.** Check with a multimeter that the laser driver supply is
    0 V with the e-stop pressed and with the key off.
 3. Set the motor currents: about 0.8 A RMS for running and 0.3-0.4 A for homing.
@@ -303,6 +305,75 @@ example Klipper with two `manual_stepper`s: `rotation_distance: 360` with `gear_
 3. In the stall case, move up to the magnet.
 4. Finish with the same one-direction, low-speed approach as pan.
 
+## Robot base
+
+The robot base (`robot.scad`, `lib/robot_params.scad`, `parts/robot_*.scad`) is a 330 mm driving base styled
+after the original roomba-turret model (`legacy/roomba-turret/`). The gimbal sits on its lid. Its frame,
+dimensions and wiring notes are in `lib/robot_params.scad`. Lid top is at 80 mm, and the total height is about
+285 mm (80 mm deck + 204 mm gimbal at tilt 0). Mass is about 2.67 kg. The minimum stability margin is 13.8 mm.
+The viewer checks these.
+
+### Print notes
+
+Use the same 0.4 mm nozzle rules as the gimbal, 4 perimeters on every part with inserts.
+
+| Part | Qty | Material | Orientation and supports |
+|---|---|---|---|
+| `robot_floor_front`, `_left`, `_rear`, `_right` | 1 each | PLA | Top face down on the bed (upside down). **Thin support under the lower lap** only. |
+| `robot_lid_fl`, `_fr`, `_rl`, `_rr` | 1 each | PLA | **Skin down.** Supports under the first ~3.5 mm of the rounded top edge. |
+| `robot_pillar` | 4 | PLA | Flange down, no supports |
+| `robot_motor_bracket` | 2 | PLA/PETG | Floor face down, saddle open upward, no supports |
+| `robot_motor_strap` | 4 | PLA/PETG | Standing on a side face, no supports |
+| `robot_wheel_hub` | 2 | **PETG** | Web face on the bed, cup open up, no supports |
+| `robot_tire` | 2 | **TPU 95A** | Flat on the bed, slow, no supports |
+| `robot_batt_tray` | 1 | PLA | As assembled, no supports |
+| `robot_ebay_tray` | 1 | PLA | Plate on the bed, no supports |
+| `robot_caster_mount` | 1 | PLA | Floor face down, no supports |
+| `robot_bumper_left`, `robot_bumper_right` | 1 each | PLA | Standing on the bottom edge, no supports |
+| `robot_bumper_splice` | 1 | PLA | Arc plate flat on the bed, no supports |
+
+The floor quadrants are 243 mm long, so they need the full 250 mm bed.
+
+### Assembly order
+
+Do the gimbal's bench sub-assemblies (sections 1-4) first. Then:
+
+1. **Floor quadrants.** Join the four quadrants with the lap screws (2 M3 per seam, into the boss inserts).
+2. **Pillars.** Fit 4x M3 from below through each flange into the floor. Each pillar takes 4 screws.
+3. **Motor brackets, motors, straps.** Fit each bracket on the floor with 4x M3 x 10 from below. Seat the
+   JGA25 gear motor in the saddle (gearbox face at |y| 113). Close it with 2 straps per motor (2x M3 x 10 into
+   the top inserts).
+4. **Wheel hubs and tires.** Press an M3 insert into the hub boss. Slide the hub onto the D-shaft and tighten the
+   M3 set screw onto the flat. Stretch the TPU tire over the hub flanges.
+5. **Caster mount and caster.** Fit the 3 inserts. Fit the mount with 3x M3 x 10 from below and the caster with
+   2x M3 screws.
+6. **Battery tray and pack.** Screw the tray to the floor with 4x M3 x 10 from below. Set the pack in the tray
+   and fasten it with the 25 mm hook-and-loop strap through the two strap slots.
+7. **E-bay tray.** Fit the Cytron MDD3A on its 4 M3 standoffs and the Pico on its 4 M2 standoffs. Put the
+   10 A fuse holder in its cradle. Screw the tray down with 4x M3 x 10 from below.
+8. **Wiring.** See the wiring list below. Pass the battery feed and the e-stop branch through the 16 mm grommet.
+9. **Lid quadrants.** Join with the splice screws inside the lid (M3 x 12 into the splice inserts). The
+   180-degree seam has a wall tab with 3 screws.
+10. **Gimbal onto the lid, lid OFF the floor.** Set the gimbal on the lid's 4 mount bosses. Fit the 4x
+    **M3 x 60** from under the lid up into the gimbal bay. Pillars carry the load once the lid is on the floor.
+11. **Lid and gimbal onto the floor.** Set the lid on the floor and drive 8x M3 from below into the lid's wall
+    bosses (inserts at r 156).
+12. **Bumper.** Put the two bumper halves on the 4 shoulder screws in their slots, with the 2 springs in their
+    seats at +-15 deg. Fit the splice plate with its M3 x 8 screws. Fit the two KW10 switches in their
+    pockets. Check that each lever closes at 2 mm of bumper travel.
+
+### Wiring (hardware)
+
+- Battery + -> 10 A fuse -> rocker switch -> up the 16 mm grommet -> the gimbal bay's 12 V input (where the DC
+  jack's leads went; the bay jack is unused on the robot).
+- The gimbal's laser enable chain is unchanged. Its e-stop NC #2 (motor branch) now also feeds the MDD3A VM,
+  down the grommet. The e-stop therefore stops the wheels, the steppers and the laser. The Pi stays powered to
+  shut down cleanly.
+- Charge jack -> BMS charge port (12.6 V 2 A Li-ion charger). Never through the rocker.
+- Pi 5 USB -> Pico (wheel controller): MDD3A PWM/DIR, 2 quadrature encoders on PIO, 2 bumper switches, lid
+  button and LED, ToF sensor on I2C.
+- Software rule: laser output only while the robot is stopped (wheel speed 0).
+
 ## Laser safety
 
 - **Class 2 is the default and the recommendation.** The BOM specifies a Class 2 (< 1 mW) visible red dot
@@ -314,6 +385,9 @@ example Klipper with two `manual_stepper`s: `rotation_distance: 360` with `gear_
   and tethered to the yoke so that it is always at hand. Take it off only for supervised use.
 - **Remove the key whenever the gimbal is unattended.** The key switch and e-stop cut the laser driver's
   supply in hardware. Keep it wired that way, and never bypass or jumper either of them.
+- **On the robot base, the e-stop also cuts the drive motors.** Software must keep the laser off whenever the
+  wheels are moving. The browser simulator enforces this.
+- **Never drive the robot with the beam-stop cap off around people or pets.**
 - **Software must refuse to fire without a confirmed target, and must never fire while a person is in the
   camera's view.**
   - If the camera feed, the detector or the homing state is missing or uncertain, the laser stays off.

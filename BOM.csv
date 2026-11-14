@@ -13,12 +13,24 @@ printed,tilt_spacer.stl,"~0.9 g each (0.7 cm3); PLA/PETG, 100% infill",2,"M8 axl
 printed,axle_collar.stl,"~0.1 g each (0.1 cm3); PLA/PETG, 100% infill (or steel 8 x 11.5 x 2 shims)",2,under the M8 head and the nylock,0,orientation: flat; supports: no
 printed,beam_stop.stl,"~2 g each (1.8 cm3); BLACK/opaque filament, 100% infill",1,laser exit cap (fit during assembly/testing),0,orientation: end face on the bed; supports: no
 printed,gear_test.stl,~4 g each (5.7 cm3); same filament + settings as the gears; print FIRST,1,backlash test coupon (not part of the machine),0,"orientation: flat, plate down; supports: no"
+printed,robot_floor_front/left/rear/right.stl,"~171 g total (46 / 38 / 49 / 38 g); PLA, 4 perimeters, 8-15 mm thick",4,"robot floor plate quadrants (lap joints, 4 M3 per seam)",0,"orientation: top face on the bed, thin support under the lower lap; supports: thin, lower lap only"
+printed,robot_lid_fl/fr/rl/rr.stl,"~277 g total (63-74 g each, 62 mm tall); PLA, 4 perimeters",4,"robot lid quadrants (skin, groove ring; splice tabs inside)",0,"orientation: skin down; supports: under the first ~3.5 mm of the rounded edge"
+printed,robot_pillar.stl,"~10 g each (18 cm3 solid); PLA, 4 perimeters",4,support pillars floor -> lid mount bosses,0,"orientation: flange down; supports: no"
+printed,robot_motor_bracket.stl,"~15 g each; PLA/PETG, 4 perimeters",2,JGA25 saddle clamps on the floor (mirror pair),0,"orientation: floor face down, saddle open upward; supports: no"
+printed,robot_motor_strap.stl,"~1 g each; PLA/PETG",4,motor clamp straps (2 per motor),0,"orientation: standing on a side face; supports: no"
+printed,robot_wheel_hub.stl,"~16 g each at the check factor, ~36 g each if solid (28.7 cm3); PETG, 4 perimeters",2,"wheel hubs (D-bore, set screw onto the flat)",0,"orientation: web face on the bed, cup open up; supports: no"
+printed,robot_tire.stl,"~17 g each solid (14 cm3); TPU 95A",2,driving tires (23 mm tread on the hub),0,"orientation: flat on the bed; supports: no; slow print"
+printed,robot_batt_tray.stl,"~5 g; PLA, 4 perimeters",1,battery tray (strap slots + BMS notch),0,"orientation: as assembled (frame on the bed); supports: no"
+printed,robot_ebay_tray.stl,"~13 g; PLA, 4 perimeters",1,"rear e-bay tray (MDD3A, Pico, fuse holder)",0,"orientation: plate on the bed; supports: no"
+printed,robot_caster_mount.stl,"~2 g; PLA",1,front ball caster mount,0,"orientation: floor face down; supports: no"
+printed,robot_bumper_left.stl / robot_bumper_right.stl,"~15 g each (mirror pair); PLA",2,front bumper halves (0 to +80 and -80 to 0 deg),0,"orientation: standing on bottom edge; supports: no"
+printed,robot_bumper_splice.stl,"~3 g; PLA",1,bumper splice plate behind the 0-deg joint,0,"orientation: arc plate flat on the bed; supports: no"
 mechanical,NEMA17 stepper,"17HS4401-class, 1.8 deg, 40 mm body, 1.5-1.7 A, 5 mm D-shaft >= 24 mm, M3 holes 31 mm",2,pan (base) + tilt (+Y yoke arm),10.0,pan pinion top flush with the shaft end; tilt pinion 12 mm from the motor face
 mechanical,6810-2RS ball bearing,"50 x 65 x 7 mm, sealed",2,pan hub in the base (back-to-back),7.0,
 mechanical,608-2RS ball bearing,"8 x 22 x 7 mm, sealed",2,"tilt axle, outside pockets of both yoke arms",1.0,
 fastener,M8 x 120 hex bolt,ISO 4014 partial thread (thread 22 mm),1,tilt axle,1.5,grip = 2 collars 4 + 2x 608 14 + 2 spacers 30 + payload with rings 62 = 110 mm; + nylock 8 + 2 mm past the nut = 120
 fastener,M8 nylock nut,DIN 985,1,"tilt axle, +Y end",0.2,no washers: the printed axle_collars (OD 11.5) replace them; a DIN 125 M8 washer (OD 16) would rub the 608 shields
-fastener,M3 x 50 socket head cap screw,ISO 4762,4,bay floor -> base post inserts,0.25,driven up from the counterbored bay floor; 5.5 mm into the insert
+fastener,M3 x 60 socket head cap screw (DIN 912),ISO 4762 / DIN 912,4,gimbal bay -> lid mount bosses (robot base); replaces the M3 x 50 base-post screws,0.30,"robot: fit from under the lid with the lid OFF the floor; tips land where the M3 x 50 did; estimate $0.25-0.40 each"
 fastener,M3 x 8 socket head cap screw,ISO 4762,16,"4 deck->turntable, 4 pan plate->base top, 4 tilt motor->tilt plate, 4 tilt plate->arm",0.08,deck/base-top heads counterbored; tilt plate ears from outside (+Y)
 fastener,M3 x 6 socket head cap screw,ISO 4762,16,"4 pan motor->pan plate, 4 SKR Pico, 8 buck + laser driver",0.07,"pan motor: CAD comment says M3x8, which needs >= 5.5 mm deep motor threads; 17HS4401 holes are usually 4.5 mm deep, so M3x6 (3.4 mm engagement)"
 fastener,M3 x 10 socket head cap screw,ISO 4762,3,pan_collar -> turntable spigot,0.08,self-taps the 2.6 mm holes (no inserts); heads stay proud under the collar
@@ -60,3 +72,23 @@ wiring,Silicone wire 18 AWG,"red + black, 1 m each",1,"12 V main: jack, fuse, e-
 wiring,Silicone wire 24 AWG,"3-4 colours, 2 m each",1,"hall sensors, laser leads, fan, TTL",6.0,tilt hall + laser leads run up the pan bore
 wiring,Connector + heat-shrink kit,"JST-XH 2.54 crimps/housings, Dupont, heat-shrink",1,all,8.0,
 wiring,Perfboard,50 x 70 mm,2,adapter plates for the buck / laser driver (only if needed),1.0,optional
+mechanical,JGA25-370 12 V 170 rpm gear motor with encoder,"12 V, 170 rpm, ~34:1 gearbox, Hall encoder (11 PPR at motor), D-shaft",2,robot drive wheels (motor brackets + straps),15.00,estimate; range $12-18 each
+mechanical,3/4 in ball caster,"3/4 in steel ball, ~23 mm mounting height (Pololu 955 class)",1,front caster (robot_caster_mount),8.00,estimate; range $6-10
+mechanical,Compression spring 6 x 10 mm,"6 x 10 mm, compression",2,bumper springs at +-15 deg,0.60,estimate; range $0.30-1.00 each
+electronics,Cytron MDD3A dual motor driver,"dual brushed DC driver, PWM/DIR inputs, 12 V",1,robot rear e-bay tray (both drive motors),25.00,estimate; range $20-30
+electronics,Raspberry Pi Pico,RP2040 board (wheel controller),1,"robot e-bay tray; PIO quadrature encoders, bumper switches, lid button",5.50,estimate; range $4-7
+electronics,KW10 lever microswitch,"20 x 10 x 6 mm, lever",2,bumper switches at +-40 deg,1.50,estimate; range $1-2 each
+electronics,VL53L1X time-of-flight breakout,I2C ToF sensor,1,behind the bumper sensor window at 0 deg,12.00,estimate; range $8-15
+electronics,16 mm momentary illuminated button,"16 mm panel mount with LED",1,lid "home" button (Pico input + LED) at 172 deg,4.50,estimate; range $3-6
+power/safety,3S2P 18650 pack + 3S 20 A BMS,"11.1 V nominal, ~7 Ah, ~78 Wh (or 6x 18650 + BMS)",1,robot battery tray (rb_batt),45.00,estimate; range $35-55 (cells + BMS + holder)
+power/safety,12.6 V 2 A Li-ion charger,"3S CC/CV, 12.6 V, 2 A",1,BMS charge port via the charge jack,12.00,estimate; range $8-15
+power/safety,KCD1 rocker switch,main power,1,robot rear wall at 195 deg (cutout 21 x 15),2.00,estimate; range $1-3
+power/safety,5.5 x 2.1 mm panel jack,"5.5 x 2.1 mm, M8 thread (hole 8.4)",1,robot charge jack at 165 deg,1.50,estimate; range $1-2
+power/safety,10 A blade fuse + holder,"10 A blade fuse with holder (35 x 15 x 12)",1,battery feed after the pack,3.00,estimate; range $2-4
+fastener,M3 screws for the robot base (assorted M3x5 set / M3x8 / M3x10 / M3x12),ISO 4762 / ISO 4029,85,"approx: floor seams 8, lid splice ~9, lid-to-floor 8, pillars 16, motor brackets + straps 16, wheel set screws 2, caster 5, battery tray 4, e-bay 8, bumper 4, splice 4",0.08,"approx count from CAD; estimate $0.05-0.10 each (buy an assorted pack)"
+fastener,M3 heat-set insert (robot base),"M3 x 5, OD 4.6 (hole 4.2)",80,"approx: floor seams 8, lid splice ~9, lid bosses 8, pillars 16, motor brackets + straps 16, wheel hubs 2, caster 3, battery 4, e-bay 8, bumper 4, splice 4",0.15,"approx count; estimate $0.12-0.20 each; with the gimbal's 32, buy 2 packs of 50"
+fastener,M2 screws (robot base),M2 self-tapping or pan-head,8,approx: Pico 4 standoffs; 2 switches x 2 on a boss,0.10,approx; estimate
+consumable,TPU 95A filament,"~60 g (2 tires)",1,robot tires (robot_tire),2.00,"estimate; ~$20-30/kg; 2 tires are ~17 g each solid, rest is purge"
+consumable,PETG filament,"~40 g",1,robot wheel hubs (PETG),1.00,"estimate; ~$18-25/kg; hubs are ~36 g each if printed solid, so budget ~75 g"
+consumable,PLA filament (robot base),"1.75 mm, 1 kg spool",1,"robot floor, lid, pillars, brackets, trays (~575 g)",20.00,estimate; second spool
+consumable,Hook-and-loop strap,25 mm wide,1,battery pack strap over the tray (2 strap slots),4.00,estimate; range $3-6
