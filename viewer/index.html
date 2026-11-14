@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gimbal Test Rig</title>
+<title>Rover Test Rig</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,6 +82,20 @@ main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; min-height: 0
 .hud > div { background: color-mix(in srgb, var(--panel) 86%, transparent); border: 1px solid var(--line); padding: 4px 8px; border-radius: 4px; width: max-content; max-width: 70vw; }
 .hud .contact { color: var(--fail); }
 .hud .clear { color: var(--pass); }
+.hud .warn { color: var(--accent); }
+.lamp { display: inline-block; min-width: 1.6em; text-align: center; padding: 0 4px; margin-right: 4px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+.lamp.on { background: var(--fail); border-color: var(--fail); color: #fff; }
+#dpad {
+  position: absolute; left: 12px; bottom: 12px; display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 48px); gap: 4px;
+  user-select: none; -webkit-user-select: none; touch-action: none;
+}
+#dpad button { padding: 0; font-size: 18px; line-height: 1; background: color-mix(in srgb, var(--panel) 88%, transparent); touch-action: none; }
+#dpad button.held { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+#dpad [data-key="w"] { grid-column: 2; grid-row: 1; }
+#dpad [data-key="a"] { grid-column: 1; grid-row: 2; }
+#dpad [data-key="s"] { grid-column: 2; grid-row: 2; }
+#dpad [data-key="d"] { grid-column: 3; grid-row: 2; }
+.check .f .chip { font: 11px var(--font-mono); color: var(--fail); padding: 4px 7px; border: 1px solid var(--line); border-radius: 4px; }
 #pip {
   position: absolute; right: 12px; bottom: 12px; width: min(300px, 46%); aspect-ratio: 1.737;
   border: 1px solid var(--line); border-radius: 4px; pointer-events: none; overflow: hidden;
@@ -150,6 +164,7 @@ input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; m
   #view { height: 58vh; min-height: 320px; }
   aside { border-left: 0; overflow: visible; padding-left: max(16px, env(safe-area-inset-left, 0px)); }
   #pip { width: 44%; }
+  #dpad { bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .pill.run::before { animation: none; } }
 </style>
@@ -163,25 +178,45 @@ input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; m
 </head>
 <body>
 <header>
-  <h1>Gimbal Test Rig</h1>
-  <span class="sub" id="sub">laser-gimbal · loading the STL export…</span>
+  <h1>Rover Test Rig</h1>
+  <span class="sub" id="sub">roomba-laser-turret · loading the STL export…</span>
   <span class="grow"></span>
   <span class="pill" id="summary">checks not run</span>
 </header>
 <main>
   <div id="view">
-    <canvas id="scene" aria-label="3D view of the gimbal. Drag to orbit, scroll to zoom, right-drag to pan."></canvas>
+    <canvas id="scene" aria-label="3D view of the rover in a room. Drag to orbit, scroll to zoom, right-drag to pan. W/S or Up/Down drive, A/D or Left/Right turn."></canvas>
     <div class="hud" aria-live="polite">
       <div id="hudPose">pan 0.0° · tilt 0.0°</div>
+      <div id="hudDrive">x 0.00 m · y 0.00 m · heading 0°</div>
+      <div id="hudBumper" class="clear"><span class="lamp">L</span><span class="lamp">R</span> bumper: clear</div>
       <div id="hudContact" class="clear">live check: clear</div>
       <div id="hudBeam">beam: –</div>
+      <div id="hudCog">CoG margin –</div>
+    </div>
+    <div id="dpad" role="group" aria-label="Drive buttons (hold)">
+      <button type="button" data-key="w" aria-label="Forward">&#9650;</button>
+      <button type="button" data-key="a" aria-label="Turn left">&#9664;</button>
+      <button type="button" data-key="s" aria-label="Back">&#9660;</button>
+      <button type="button" data-key="d" aria-label="Turn right">&#9654;</button>
     </div>
     <div id="pip"><span class="tag">Camera Module 3 · upright</span><div class="cap" id="pipCap">–</div></div>
     <div id="loading"><div id="loadText">Loading meshes…</div><div class="bar"><i id="loadBar"></i></div></div>
   </div>
   <aside>
+    <section aria-labelledby="h-rover">
+      <h2 id="h-rover">Rover <span class="pill" id="laserChip">laser ready</span></h2>
+      <p class="note">W/S or Up/Down drive, A/D or Left/Right turn (or hold the pad in the scene). 0.5 m/s, 90 °/s, 0.5 m/s² per wheel, about the axle midpoint. The laser fires only while stopped.</p>
+      <div class="motor" id="rover"></div>
+      <div class="row">
+        <button id="aim" type="button" class="primary">Aim at target</button>
+        <button id="resetPos" type="button">Reset position</button>
+        <button id="follow" type="button" aria-pressed="false">Follow</button>
+      </div>
+      <p class="note" id="aimMsg">Aim: –</p>
+    </section>
     <section aria-labelledby="h-drive">
-      <h2 id="h-drive">Drive <span class="pill" id="stopChip" hidden>at hard stop</span></h2>
+      <h2 id="h-drive">Gimbal <span class="pill" id="stopChip" hidden>at hard stop</span></h2>
       <div class="axis"><label for="pan">Pan</label><input type="range" id="pan" step="0.5"><output id="panOut" for="pan">0.0°</output></div>
       <div class="axis"><label for="tilt">Tilt</label><input type="range" id="tilt" step="0.5"><output id="tiltOut" for="tilt">0.0°</output></div>
       <div class="motor" id="motor"></div>
@@ -194,7 +229,7 @@ input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; m
       <h2 id="h-checks">Checks <button id="run" class="primary" type="button" disabled>Run checks</button></h2>
       <div class="progress"><i id="runBar"></i></div>
       <div class="checks" id="checks"></div>
-      <p class="note">Tested on the exported triangles themselves: two parts fail a pose when their surfaces cross. Touching faces (bolted joints, a stop at its end angle) are contact, not a hit. Shaft fits and bearing seats that sit on two moving bodies are skipped: <span id="excl"></span>.</p>
+      <p class="note">Tested on the exported triangles themselves: two parts fail a pose when their surfaces cross. Touching faces (bolted joints, a stop at its end angle) are contact, not a hit. Shaft fits and bearing seats that sit on two moving bodies are skipped: <span id="excl"></span>. Masses: printed parts = mesh volume x 1.24 g/cm³ x 0.45 fill, bought parts nominal.</p>
     </section>
     <section aria-labelledby="h-view">
       <h2 id="h-view">View</h2>
@@ -219,72 +254,83 @@ input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; m
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { Rig, PARTS, EXCLUDE, buildBVHs, pairList, collisions, runChecks } from './sim.js';
+import { Rig, PARTS, EXCLUDE, buildBVHs, pairList, collisions, runChecks, stability } from './sim.js';
 
 const $ = id => document.getElementById(id);
 const setText = (id, t) => { const e = $(id); if (e.textContent !== t) e.textContent = t; };
+const setHtml = (id, t) => { const e = $(id); if (e.innerHTML !== t) e.innerHTML = t; };
+const setCls = (id, c) => { const e = $(id); if (e.className !== c) e.className = c; };
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const D2R = Math.PI / 180;
+const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
 
 // Camera Module 3 (standard lens): 66 x 41 deg field of view, 4608 x 2592 sensor
 const CAM = { hfov: 66, vfov: 41, px: [4608, 2592] };
-const BODY_LABEL = { static: 'fixed', pan_pinion: 'pan drive', pan: 'pan', tilt_pinion: 'tilt drive', tilt: 'tilt' };
+const BODY_LABEL = { static: 'fixed', pan_pinion: 'pan drive', pan: 'pan', tilt_pinion: 'tilt drive', tilt: 'tilt', wheel_l: 'left wheel', wheel_r: 'right wheel' };
+
+// Drive limits and encoder (JGA25-370: 11 PPR at the motor x 34:1 gearbox x 4 edges)
+const V_MAX = 500, W_MAX = 90 * D2R, A_MAX = 500;      // mm/s, rad/s, mm/s2 per wheel
+const COUNTS_PER_REV = 11 * 34 * 4;                    // 1496
+const BUMPER_R = 169, BUMPER_SW = 40 * D2R, HIT_HOLD = 0.35;   // mm, rad, s (lamp hold time)
+const ROOM = 4000;                                     // walls at +-4 m: an 8 x 8 m room
 
 // ---------------------------------------------------------------- scene
 const view = $('view'), canvas = $('scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
-const cam = new THREE.PerspectiveCamera(38, 1, 2, 30000);
+const cam = new THREE.PerspectiveCamera(38, 1, 2, 40000);
 cam.up.set(0, 0, 1);
-cam.position.set(520, -470, 360);
+cam.position.set(-900, -1000, 750);
 const controls = new OrbitControls(cam, canvas);
-controls.target.set(0, 0, 110);
+controls.target.set(0, 0, 130);
 controls.enableDamping = true;
-controls.maxDistance = 9000;
+controls.maxDistance = 14000;
 controls.update();
 scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.1));
 const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(800, -600, 1400); scene.add(sun);
 const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(-900, 700, 300); scene.add(fill);
 
-// room: the gimbal on a bench, facing a target board 3 m away
+// room: 8 x 8 m with walls, crates, and a target board on the far wall at laser height
 const env = new THREE.Group(); scene.add(env);
 const envMats = { wall: new THREE.MeshStandardMaterial({ side: THREE.BackSide, roughness: 0.95 }),
                   floor: new THREE.MeshStandardMaterial({ roughness: 1 }),
-                  bench: new THREE.MeshStandardMaterial({ roughness: 0.8 }),
                   crate: new THREE.MeshStandardMaterial({ roughness: 0.9 }) };
 const hitTargets = [];
-let grid;
+let grid, boardCentre = new THREE.Vector3();
 function addEnv(mesh, name) { mesh.name = name; env.add(mesh); hitTargets.push(mesh); return mesh; }
-function buildRoom(top) {
-  const H = 2600, floorZ = top - 740, R = 3000;
-  addEnv(new THREE.Mesh(new THREE.BoxGeometry(2 * R, 2 * R, H), envMats.wall), 'wall').position.set(0, 0, floorZ + H / 2);
-  const fl = addEnv(new THREE.Mesh(new THREE.PlaneGeometry(2 * R, 2 * R), envMats.floor), 'floor'); fl.position.z = floorZ + 0.5;
-  grid = new THREE.GridHelper(2 * R, 24); grid.rotation.x = Math.PI / 2; grid.position.z = floorZ + 1; env.add(grid);
-  addEnv(new THREE.Mesh(new THREE.BoxGeometry(900, 650, 40), envMats.bench), 'bench').position.set(80, 0, top - 20);
-  for (const [x, y] of [[-330, -280], [490, -280], [-330, 280], [490, 280]])
-    addEnv(new THREE.Mesh(new THREE.BoxGeometry(40, 40, 700), envMats.bench), 'bench').position.set(x, y, floorZ + 350);
-  // target board on the far wall at the laser height
-  const board = new THREE.Group(); board.position.set(R - 12, 0, 165); board.rotation.y = -Math.PI / 2; env.add(board);
-  const back = new THREE.Mesh(new THREE.BoxGeometry(900, 900, 20), new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.9 }));
+// crates: centre x, y (mm), size x, y, z, yaw (deg). Footprints are what the bumper circle hits.
+const CRATES = [[1500, 1200, 500, 500, 500, 20], [2200, -1300, 700, 500, 700, -30], [-1800, 1800, 600, 600, 600, 0],
+                [800, -2300, 450, 450, 450, 35], [-2500, -1000, 800, 500, 400, 10], [2900, 2300, 500, 500, 900, 0],
+                [-600, -3000, 600, 400, 500, 60], [-3000, 600, 500, 700, 600, -15]];
+const obstacles = CRATES.map(([cx, cy, w, d, h, yaw]) => ({ cx, cy, hx: w / 2, hy: d / 2, yaw: yaw * D2R }));
+function buildRoom(laserZ) {
+  const H = 2600, R = ROOM;
+  addEnv(new THREE.Mesh(new THREE.BoxGeometry(2 * R, 2 * R, H), envMats.wall), 'wall').position.set(0, 0, H / 2);
+  const fl = addEnv(new THREE.Mesh(new THREE.PlaneGeometry(2 * R, 2 * R), envMats.floor), 'floor'); fl.position.z = 0.5;
+  grid = new THREE.GridHelper(2 * R, 16); grid.rotation.x = Math.PI / 2; grid.position.z = 1; env.add(grid);
+  // target board on the +X wall, centre at laser height
+  const board = new THREE.Group(); board.position.set(R - 12, 0, laserZ); board.rotation.y = -Math.PI / 2; env.add(board);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(900, 480, 20), new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.9 }));
   back.name = 'target board'; board.add(back); hitTargets.push(back);
-  [400, 300, 200, 100, 30].forEach((r, i) => {
-    const ring = new THREE.Mesh(new THREE.RingGeometry(r - (i === 4 ? 30 : 12), r, 96),
+  [230, 180, 130, 80, 30].forEach((r, i) => {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(i === 4 ? 0 : r - 25, r, 96),
       new THREE.MeshBasicMaterial({ color: i % 2 ? 0x2b2f36 : 0xc0392b }));
-    ring.position.z = -10.5; ring.rotation.y = Math.PI; board.add(ring);
+    ring.position.z = 10.5; board.add(ring);
   });
-  // a few crates and a shelf to sweep the beam across
-  for (const [x, y, s] of [[1600, 1300, 420], [2100, -1500, 600], [-1700, 1900, 500], [900, -2500, 380], [-2300, -1200, 700]])
-    addEnv(new THREE.Mesh(new THREE.BoxGeometry(s, s, s), envMats.crate), 'crate').position.set(x, y, floorZ + s / 2);
-  addEnv(new THREE.Mesh(new THREE.BoxGeometry(1800, 350, 40), envMats.crate), 'shelf').position.set(600, R - 175, top + 600);
+  boardCentre.set(R - 12 - 10, 0, laserZ);           // front face of the plate
+  for (const [i, o] of CRATES.entries()) {
+    const [cx, cy, w, d, h, yaw] = o;
+    const c = addEnv(new THREE.Mesh(new THREE.BoxGeometry(w, d, h), envMats.crate), 'crate ' + (i + 1));
+    c.position.set(cx, cy, h / 2); c.rotation.z = yaw * D2R;
+  }
 }
 
 function applyTheme() {
   scene.background = new THREE.Color(css('--scene'));
   envMats.wall.color.set(css('--wall'));
   envMats.floor.color.set(css('--floor'));
-  envMats.bench.color.set(css('--muted'));
-  envMats.crate.color.set(css('--wall')).offsetHSL(0, 0, -0.06);
+  envMats.crate.color.set(css('--wall')).offsetHSL(0, 0, -0.08);
   if (grid) { grid.material.color.set(css('--grid')); grid.material.vertexColors = false; }
   beamMat.color.set(css('--beam'));
   dotMat.color.set(css('--beam'));
@@ -334,13 +380,13 @@ async function load() {
   pairs = pairList(rig);
 
   const tris = Object.values(geoms).reduce((s, g) => s + g.index.count / 3, 0);
-  $('sub').textContent = `laser-gimbal v0.1.0 · ${PARTS.length} objects from assembly.scad · ${Math.round(tris / 1000)}k triangles · 85:17 pan, 51:17 tilt`;
+  $('sub').textContent = `roomba-laser-turret · ${PARTS.length} objects from robot.scad · ${Math.round(tris / 1000)}k triangles · ${rig.massTotal.toFixed(2)} kg · 85:17 pan, 51:17 tilt`;
   $('triCount').textContent = `${PARTS.length} objects`;
-  buildRoom(geoms.bay.boundingBox.min.z);
+  buildRoom(kin.deck_z + kin.tilt_z);
 
-  // camera on the payload: looks along +X, image up = +Z
-  pipCam = new THREE.PerspectiveCamera(CAM.vfov, Math.tan(CAM.hfov / 2 * D2R) / Math.tan(CAM.vfov / 2 * D2R), 10, 20000);
-  pipCam.position.set(kin.cam_front_x, kin.cam_axis[1], kin.cam_axis[2]);
+  // camera on the payload: looks along +X, image up = +Z (rides on the robot)
+  pipCam = new THREE.PerspectiveCamera(CAM.vfov, Math.tan(CAM.hfov / 2 * D2R) / Math.tan(CAM.vfov / 2 * D2R), 10, 30000);
+  pipCam.position.set(kin.cam_front_x, kin.cam_axis[1], kin.deck_z + kin.cam_axis[2]);
   pipCam.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(
     new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(-1, 0, 0)));
   rig.tiltInner.add(pipCam);
@@ -353,7 +399,7 @@ async function load() {
 }
 
 // ---------------------------------------------------------------- pose + live check
-const ui = { pan: 0, tilt: 0, explode: 0, scanning: false, checking: false };
+const ui = { pan: 0, tilt: 0, explode: 0, scanning: false, checking: false, follow: false };
 function setPose(pan, tilt, fromSlider = false) {
   const k = kin;
   ui.pan = Math.max(-k.pan_stop, Math.min(k.pan_stop, pan));
@@ -380,24 +426,114 @@ function liveCheck() {
   highlight([...new Set(hits.flat())]);
 }
 
-function readouts() {
-  const k = kin, m = rig.motorAngles();
-  setText('panOut', `${ui.pan.toFixed(1)}°`);
-  setText('tiltOut', `${ui.tilt.toFixed(1)}°`);
-  setText('hudPose', `pan ${ui.pan.toFixed(1)}° · tilt ${ui.tilt.toFixed(1)}°`);
-  const steps = a => Math.round(a / 1.8 * 16);
-  const motorHtml =
-    `<span>pan motor</span><span><b>${m.pan.toFixed(1)}°</b> shaft · ${steps(m.pan)} µsteps</span>` +
-    `<span>tilt motor</span><span><b>${m.tilt.toFixed(1)}°</b> shaft · ${steps(m.tilt)} µsteps</span>` +
-    `<span>resolution</span><span>${(1.8 / 16 / (k.pan_gear_z / k.pinion_z)).toFixed(4)}° pan, ${(1.8 / 16 / (k.tilt_gear_z / k.pinion_z)).toFixed(4)}° tilt (1/16)</span>`;
-  if ($('motor').innerHTML !== motorHtml) $('motor').innerHTML = motorHtml;
-  const atStop = Math.abs(ui.pan) >= k.pan_stop || ui.tilt <= k.tilt_range[0] || ui.tilt >= k.tilt_range[1];
-  $('stopChip').hidden = !atStop;
+// ---------------------------------------------------------------- driving
+// Differential drive about the AXLE MIDPOINT (rb_axle_x, 0). State: robot origin (under the pan
+// axis) x, y (mm) and heading; wheel speeds vl, vr (mm/s). Wheels spin by the distance each
+// wheel actually travelled / its radius, so a blocked robot does not spin its wheels.
+const drive = { x: 0, y: 0, yaw: 0, vl: 0, vr: 0, rev: [0, 0], bump: { l: 0, r: 0, side: 0 }, cmd: 0 };
+const keys = new Set(), pad = new Set();
+const held = k => keys.has(k) || pad.has(k);
+const KEYMAP = { w: 'w', arrowup: 'w', s: 's', arrowdown: 's', a: 'a', arrowleft: 'a', d: 'd', arrowright: 'd' };
+addEventListener('keydown', e => {
+  const k = KEYMAP[e.key.toLowerCase()];
+  if (!k || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target.matches?.('input[type=range]') && e.key.startsWith('Arrow')) return;   // sliders keep their arrows
+  keys.add(k); e.preventDefault();
+});
+addEventListener('keyup', e => { const k = KEYMAP[e.key.toLowerCase()]; if (k) keys.delete(k); });
+addEventListener('blur', () => { keys.clear(); pad.clear(); });
+for (const b of document.querySelectorAll('#dpad button')) {
+  const k = b.dataset.key;
+  b.addEventListener('pointerdown', e => { b.setPointerCapture(e.pointerId); pad.add(k); b.classList.add('held'); e.preventDefault(); });
+  const up = () => { pad.delete(k); b.classList.remove('held'); };
+  b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
 }
+
+// circle (robot footprint) vs walls and oriented boxes: push out, report contact directions
+function resolveContacts(x, y) {
+  const lim = ROOM - BUMPER_R, hits = [];
+  for (let pass = 0; pass < 4; pass++) {
+    if (x > lim) { x = lim; hits.push(0); } else if (x < -lim) { x = -lim; hits.push(Math.PI); }
+    if (y > lim) { y = lim; hits.push(Math.PI / 2); } else if (y < -lim) { y = -lim; hits.push(-Math.PI / 2); }
+    for (const o of obstacles) {
+      const c = Math.cos(o.yaw), s = Math.sin(o.yaw), dx = x - o.cx, dy = y - o.cy;
+      const lx = c * dx + s * dy, ly = -s * dx + c * dy;                  // centre in box frame
+      const qx = Math.max(-o.hx, Math.min(o.hx, lx)), qy = Math.max(-o.hy, Math.min(o.hy, ly));
+      let nx = lx - qx, ny = ly - qy, d = Math.hypot(nx, ny);
+      if (d >= BUMPER_R) continue;
+      if (d < 1e-6) {                                                      // centre inside the box: leave by the nearest face
+        const px = o.hx - Math.abs(lx), py = o.hy - Math.abs(ly);
+        if (px < py) { nx = Math.sign(lx) || 1; ny = 0; d = -px; } else { nx = 0; ny = Math.sign(ly) || 1; d = -py; }
+      } else { nx /= d; ny /= d; }
+      const push = BUMPER_R - d;
+      const wx = c * nx - s * ny, wy = s * nx + c * ny;                    // normal box -> robot, world
+      x += wx * push; y += wy * push;
+      hits.push(Math.atan2(-wy, -wx));                                     // direction robot -> obstacle
+    }
+  }
+  return { x, y, hits };
+}
+
+function stepDrive(dt) {
+  const k = kin, wy = k.rb_wheel_y, ax = k.rb_axle_x, R = k.rb_wheel_d / 2;
+  const fwd = (held('w') ? 1 : 0) - (held('s') ? 1 : 0), turn = (held('a') ? 1 : 0) - (held('d') ? 1 : 0);
+  drive.cmd = Math.abs(fwd) + Math.abs(turn);
+  // wheel speed targets; scale both so the faster wheel stays <= V_MAX
+  let tl = fwd * V_MAX - turn * W_MAX * wy, tr = fwd * V_MAX + turn * W_MAX * wy;
+  const m = Math.max(Math.abs(tl), Math.abs(tr)) / V_MAX;
+  if (m > 1) { tl /= m; tr /= m; }
+  const dv = A_MAX * dt;
+  drive.vl += Math.max(-dv, Math.min(dv, tl - drive.vl));
+  drive.vr += Math.max(-dv, Math.min(dv, tr - drive.vr));
+  if (Math.abs(drive.vl) < 1e-6 && !tl) drive.vl = 0;
+  if (Math.abs(drive.vr) < 1e-6 && !tr) drive.vr = 0;
+  if (!drive.vl && !drive.vr) return false;
+
+  const v = (drive.vl + drive.vr) / 2, w = (drive.vr - drive.vl) / (2 * wy);
+  const yaw0 = drive.yaw, yaw1 = yaw0 + w * dt, ym = (yaw0 + yaw1) / 2;
+  // axle midpoint A = origin + R(yaw) (axle_x, 0): moves along the heading
+  const A0x = drive.x + Math.cos(yaw0) * ax, A0y = drive.y + Math.sin(yaw0) * ax;
+  const A1x = A0x + v * dt * Math.cos(ym), A1y = A0y + v * dt * Math.sin(ym);
+  const res = resolveContacts(A1x - Math.cos(yaw1) * ax, A1y - Math.sin(yaw1) * ax);
+  // what the axle actually did (after sliding along an obstacle)
+  const A2x = res.x + Math.cos(yaw1) * ax, A2y = res.y + Math.sin(yaw1) * ax;
+  const dist = (A2x - A0x) * Math.cos(ym) + (A2y - A0y) * Math.sin(ym);
+  drive.x = res.x; drive.y = res.y; drive.yaw = yaw1;
+  const dyaw = yaw1 - yaw0;
+  drive.rev[0] += (dist - dyaw * wy) / R; drive.rev[1] += (dist + dyaw * wy) / R;     // left, right wheel angle (rad)
+  // a hit takes the speed off the linear motion into the obstacle (turning is not blocked)
+  for (const a of res.hits) {
+    const hx = Math.cos(a), hy = Math.sin(a);
+    if (v * (Math.cos(yaw1) * hx + Math.sin(yaw1) * hy) > 0) { drive.vl -= v; drive.vr -= v; break; }
+  }
+  for (const a of res.hits) bumperHit(a, yaw1);
+  return true;
+}
+// contact direction a (world) -> bumper switch(es) within +-80 deg of forward, else side/rear
+function bumperHit(a, yaw) {
+  const b = wrapPi(a - yaw), lim = kin.rb_bumper_ang * D2R;
+  if (Math.abs(b) <= lim) {
+    if (Math.abs(b) < 15 * D2R) { drive.bump.l = drive.bump.r = HIT_HOLD; }       // dead ahead: the band slides, both close
+    else if (b > 0) drive.bump.l = HIT_HOLD; else drive.bump.r = HIT_HOLD;         // left (+Y) or right side
+  } else drive.bump.side = HIT_HOLD;
+}
+function applyDrive() {
+  rig.setDrive(drive.x, drive.y, drive.yaw);
+  rig.setWheels(drive.rev[0], drive.rev[1]);
+}
+const moving = () => !!(drive.cmd || Math.abs(drive.vl) > 0.5 || Math.abs(drive.vr) > 0.5);
 
 // ---------------------------------------------------------------- laser
 const ray = new THREE.Raycaster(), _o = new THREE.Vector3(), _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0);
 let beamHit = null;
+// ray of the laser at the current pose (world): origin at the module's exit, along the payload's +X
+function castLaser() {
+  rig.tiltInner.localToWorld(_o.set(kin.laser_exit_x, kin.laser_axis[1], kin.deck_z + kin.laser_axis[2]));
+  rig.tiltInner.getWorldQuaternion(_q);
+  _d.set(1, 0, 0).applyQuaternion(_q).normalize();
+  ray.set(_o, _d); ray.far = 20000;
+  return ray.intersectObjects(hitTargets, false)[0];
+}
 function updateBeam() {
   const show = $('tBeam').checked;
   const capped = $('tCap').checked;
@@ -405,12 +541,9 @@ function updateBeam() {
   beamHit = null;
   if (!show) { setText('hudBeam', 'beam: hidden'); return; }
   if (capped) { setText('hudBeam', 'beam: blocked by the beam-stop cap'); return; }
-  rig.tiltInner.localToWorld(_o.set(kin.laser_exit_x, kin.laser_axis[1], kin.laser_axis[2]));
-  rig.tiltInner.getWorldQuaternion(_q);
-  _d.set(1, 0, 0).applyQuaternion(_q).normalize();
-  ray.set(_o, _d); ray.far = 20000;
-  const hit = ray.intersectObjects(hitTargets, false)[0];
-  const len = hit ? hit.distance : 6000;
+  if (moving()) { setText('hudBeam', 'laser off while driving'); return; }      // robot rule: laser only while stopped
+  const hit = castLaser();
+  const len = hit ? hit.distance : 8000;
   beam.visible = true;
   beam.position.copy(_o).addScaledVector(_d, len / 2);
   beam.quaternion.setFromUnitVectors(_up, _d);
@@ -419,6 +552,7 @@ function updateBeam() {
   setText('hudBeam', hit ? `beam: ${hit.object.name} at ${(hit.distance / 1000).toFixed(2)} m` : 'beam: no hit');
 }
 function pipCaption() {
+  if (moving()) { setText('pipCap', 'laser off while driving'); return; }
   if (!beamHit) { setText('pipCap', 'laser dot not in view'); return; }
   const p = beamHit.point.clone().project(pipCam);
   if (Math.abs(p.x) > 1 || Math.abs(p.y) > 1 || p.z > 1) { setText('pipCap', 'laser dot outside the frame'); return; }
@@ -427,19 +561,54 @@ function pipCaption() {
   setText('pipCap', `dot at ${x.toFixed(0)}, ${y.toFixed(0)} px · ${Math.abs(dx).toFixed(0)} px ${dx < 0 ? 'left' : 'right'} of centre`);
 }
 
+// Aim at the target board centre from the current robot pose. Fixed-point iteration on the real
+// laser exit point (it sits 12 mm off the pan axis and moves with pan/tilt): direction from the exit
+// to the target, in the robot frame -> pan, tilt; clamp to the stops.
+function aimAtTarget() {
+  const k = kin, inv = new THREE.Matrix4().copy(rig.root.matrixWorld).invert();
+  const T = boardCentre.clone().applyMatrix4(inv);            // target in the robot frame
+  let pan = ui.pan, tilt = ui.tilt, clamped = false;
+  const saveExplode = ui.explode;
+  for (let i = 0; i < 10; i++) {
+    rig.setPose(pan, tilt, 0);
+    rig.tiltInner.localToWorld(_o.set(k.laser_exit_x, k.laser_axis[1], k.deck_z + k.laser_axis[2]));
+    const O = _o.clone().applyMatrix4(inv);
+    const dx = T.x - O.x, dy = T.y - O.y, dz = T.z - O.z;
+    let np = Math.atan2(dy, dx) / D2R, nt = Math.atan2(dz, Math.hypot(dx, dy)) / D2R;
+    clamped = np < -k.pan_stop || np > k.pan_stop || nt < k.tilt_range[0] || nt > k.tilt_range[1];
+    np = Math.max(-k.pan_stop, Math.min(k.pan_stop, np)); nt = Math.max(k.tilt_range[0], Math.min(k.tilt_range[1], nt));
+    const moved = Math.hypot(np - pan, nt - tilt);
+    pan = np; tilt = nt;
+    if (moved < 1e-4) break;
+  }
+  ui.explode = saveExplode;
+  stopScan(); setPose(pan, tilt);
+  const hit = castLaser();
+  const err = hit && hit.object.name === 'target board' ? hit.point.distanceTo(boardCentre) : null;
+  const dist = Math.hypot(T.x, T.y) / 1000;
+  const base = `pan ${pan.toFixed(1)}°, tilt ${tilt.toFixed(1)}° · target ${dist.toFixed(2)} m away`;
+  if (clamped) setText('aimMsg', `Aim: out of reach (${base}, clamped to the stops). Turn or move the robot.`);
+  else if (err === null) setText('aimMsg', `Aim: ${base}, but the beam hits ${hit ? hit.object.name : 'nothing'} first.`);
+  else setText('aimMsg', `Aim: on target (${base}), dot ${err.toFixed(1)} mm from the centre.`);
+  return { pan, tilt, clamped, err };
+}
+window.__rover = { drive, aimAtTarget, get rig() { return rig; }, keys, ui };
+
 // ---------------------------------------------------------------- checks
 const CHECK_IDS = [
   ['range', 'Full range: no part hits another'], ['pan_gear', 'Pan gears mesh without clashing'],
   ['tilt_gear', 'Tilt gears mesh without clashing'], ['tilt_stops', 'Tilt hard stops engage'],
   ['pan_stops', 'Pan hard stop engages'], ['sanity', 'Sanity: a wrong gear direction is caught'],
+  ['wheels', 'Wheels spin clear'], ['stand', 'Stands on its wheels'], ['tip', 'Does not tip over'],
 ];
 function renderCheckRows(results = {}, running = null, prog = null) {
   $('checks').innerHTML = CHECK_IDS.map(([id, title]) => {
     const r = results[id];
     const state = r ? (r.pass ? 'pass' : 'fail') : running === id ? 'run' : '';
     const label = r ? (r.pass ? 'pass' : `${r.failures.length} fail`) : running === id ? (prog ? `${prog.done}/${prog.total}` : 'running') : 'queued';
-    const fails = r && !r.pass ? `<div class="f">${r.failures.slice(0, 12).map(f =>
-      `<button type="button" data-pan="${f.pan}" data-tilt="${f.tilt}" data-hits="${f.hits.flat().join(',')}">${f.pan}°/${f.tilt}° ${f.hits.length ? f.hits.map(h => h.join('×')).join(' ') : 'no contact'}</button>`).join('')}</div>` : '';
+    const fails = r && !r.pass ? `<div class="f">${r.failures.slice(0, 12).map(f => (f.note || f.wheel)
+      ? `<span class="chip">${f.note || `wheel ${f.wheel} ${f.pan}° ${f.hits.map(h => h.join('×')).join(' ')}`}</span>`
+      : `<button type="button" data-pan="${f.pan}" data-tilt="${f.tilt}" data-hits="${f.hits.flat().join(',')}">${f.pan}°/${f.tilt}° ${f.hits.length ? f.hits.map(h => h.join('×')).join(' ') : 'no contact'}</button>`).join('')}</div>` : '';
     return `<div class="check"><span class="t">${r ? r.title : title}</span><span class="pill ${state}">${label}</span>` +
       `<span class="d">${r ? `${r.detail}. ${r.poses} poses.` : ''}</span>${fails}</div>`;
   }).join('');
@@ -448,21 +617,20 @@ const frame = () => new Promise(r => requestAnimationFrame(r));
 async function runAll() {
   if (ui.checking) return;
   ui.checking = true; ui.scanning = false; $('scan').setAttribute('aria-pressed', 'false');
-  for (const id of ['run', 'home', 'scan', 'pan', 'tilt', 'explode']) $(id).disabled = true;
+  for (const id of ['run', 'home', 'scan', 'pan', 'tilt', 'explode', 'aim']) $(id).disabled = true;
   const saved = { pan: ui.pan, tilt: ui.tilt, explode: ui.explode };
   ui.explode = 0; $('explode').value = 0; $('explodeOut').textContent = '0%';
   $('summary').className = 'pill run'; $('summary').textContent = 'checking…';
   highlight([]);
   const results = {};
   const gen = runChecks(rig, { step: 5, yieldEvery: 1 });
-  let r, last = null, t0 = performance.now(), poses = 0;
+  let r, last = null, t0 = performance.now();
   const started = performance.now();
   renderCheckRows(results, 'range');
   while (!(r = gen.next()).done) {
-    last = r.value; poses++;
+    last = r.value;
     if (performance.now() - t0 > 40) {
-      const all = 1633 + 296 + 222 + 2 + 2 + 8;
-      $('runBar').style.width = `${Math.min(100, 100 * poses / all).toFixed(1)}%`;
+      $('runBar').style.width = `${Math.min(100, 100 * last.cum / last.all).toFixed(1)}%`;
       setText('hudPose', `checking pan ${last.pan.toFixed(1)}° · tilt ${last.tilt.toFixed(1)}°`);
       renderCheckRows(results, last.id, last);
       await frame();
@@ -475,10 +643,12 @@ async function runAll() {
   $('summary').className = `pill ${failed ? 'fail' : 'pass'}`;
   $('summary').textContent = failed ? `${failed} of ${r.value.length} checks fail` : `${r.value.length}/${r.value.length} checks pass · ${((performance.now() - started) / 1000).toFixed(0)} s`;
   renderCheckRows(results);
-  for (const id of ['run', 'home', 'scan', 'pan', 'tilt', 'explode']) $(id).disabled = false;
+  window.__checkMs = performance.now() - started;
+  for (const id of ['run', 'home', 'scan', 'pan', 'tilt', 'explode', 'aim']) $(id).disabled = false;
   ui.checking = false;
   ui.explode = saved.explode; $('explode').value = saved.explode;
   setPose(saved.pan, saved.tilt);
+  drive.rev = [rig.wheel.l, rig.wheel.r];
 }
 
 // ---------------------------------------------------------------- UI
@@ -495,6 +665,14 @@ function setupUI() {
   $('home').addEventListener('click', () => { stopScan(); setPose(0, 0); });
   $('scan').addEventListener('click', () => {
     ui.scanning = !ui.scanning; $('scan').setAttribute('aria-pressed', String(ui.scanning)); scanT = 0;
+  });
+  $('aim').addEventListener('click', aimAtTarget);
+  $('resetPos').addEventListener('click', () => {
+    Object.assign(drive, { x: 0, y: 0, yaw: 0, vl: 0, vr: 0 }); applyDrive(); followSnap();
+  });
+  $('follow').addEventListener('click', () => {
+    ui.follow = !ui.follow; $('follow').setAttribute('aria-pressed', String(ui.follow));
+    if (ui.follow) followSnap();
   });
   $('run').addEventListener('click', runAll);
   $('checks').addEventListener('click', e => {
@@ -531,6 +709,62 @@ function setupUI() {
 let scanT = 0;
 function stopScan() { if (ui.scanning) { ui.scanning = false; $('scan').setAttribute('aria-pressed', 'false'); } }
 
+// ---------------------------------------------------------------- readouts
+const _p = new THREE.Vector3();
+function readouts() {
+  const k = kin, m = rig.motorAngles();
+  setText('panOut', `${ui.pan.toFixed(1)}°`);
+  setText('tiltOut', `${ui.tilt.toFixed(1)}°`);
+  setText('hudPose', `pan ${ui.pan.toFixed(1)}° · tilt ${ui.tilt.toFixed(1)}°`);
+  const steps = a => Math.round(a / 1.8 * 16);
+  const motorHtml =
+    `<span>pan motor</span><span><b>${m.pan.toFixed(1)}°</b> shaft · ${steps(m.pan)} µsteps</span>` +
+    `<span>tilt motor</span><span><b>${m.tilt.toFixed(1)}°</b> shaft · ${steps(m.tilt)} µsteps</span>` +
+    `<span>resolution</span><span>${(1.8 / 16 / (k.pan_gear_z / k.pinion_z)).toFixed(4)}° pan, ${(1.8 / 16 / (k.tilt_gear_z / k.pinion_z)).toFixed(4)}° tilt (1/16)</span>`;
+  setHtml('motor', motorHtml);
+  const atStop = Math.abs(ui.pan) >= k.pan_stop || ui.tilt <= k.tilt_range[0] || ui.tilt >= k.tilt_range[1];
+  $('stopChip').hidden = !atStop;
+
+  // robot
+  const hd = ((drive.yaw / D2R % 360) + 540) % 360 - 180;
+  setText('hudDrive', `x ${(drive.x / 1000).toFixed(2)} m · y ${(drive.y / 1000).toFixed(2)} m · heading ${hd.toFixed(0)}°`);
+  const circ = Math.PI * k.rb_wheel_d, rpm = v => v / circ * 60;
+  const cnt = a => Math.round(a / (2 * Math.PI) * COUNTS_PER_REV);
+  const sg = rig.cog(), st = stability(rig, sg);
+  setHtml('rover',
+    `<span>position</span><span><b>${(drive.x / 1000).toFixed(3)}, ${(drive.y / 1000).toFixed(3)} m</b> · heading <b>${hd.toFixed(1)}°</b></span>` +
+    `<span>wheel rpm</span><span>L <b>${rpm(drive.vl).toFixed(0)}</b> · R <b>${rpm(drive.vr).toFixed(0)}</b></span>` +
+    `<span>encoders</span><span>L <b>${cnt(drive.rev[0])}</b> · R <b>${cnt(drive.rev[1])}</b> (${COUNTS_PER_REV}/rev)</span>` +
+    `<span>mass · CoG</span><span>${sg.mass.toFixed(2)} kg · ${sg.z.toFixed(0)} mm high</span>` +
+    `<span>tip margin</span><span><b>${st.margin.toFixed(1)} mm</b> · ${st.aFwd.toFixed(2)} m/s² fwd, ${st.aBrake.toFixed(1)} braking</span>`);
+  const mg = $('hudCog');
+  setText('hudCog', `CoG margin ${st.margin.toFixed(1)} mm · ${sg.mass.toFixed(2)} kg`);
+  mg.className = st.margin < 10 ? 'contact' : 'clear';
+  const b = drive.bump, side = b.side > 0 && !(b.l > 0 || b.r > 0);
+  setHtml('hudBumper', `<span class="lamp${b.l > 0 ? ' on' : ''}">L</span><span class="lamp${b.r > 0 ? ' on' : ''}">R</span>` +
+    (b.l > 0 || b.r > 0 ? `bumper: ${b.l > 0 && b.r > 0 ? 'BOTH' : b.l > 0 ? 'LEFT' : 'RIGHT'} switch closed` : b.side > 0 ? 'side/rear contact (no switch)' : 'bumper: clear'));
+  setCls('hudBumper', b.l > 0 || b.r > 0 ? 'contact' : b.side > 0 ? 'warn' : 'clear');
+  setText('laserChip', moving() ? 'laser off while driving' : 'laser ready');
+  setCls('laserChip', moving() ? 'pill run' : 'pill pass');
+}
+
+// ---------------------------------------------------------------- chase camera
+let lastX = 0, lastY = 0, lastYaw = 0;
+function followSnap() {
+  const c = Math.cos(drive.yaw), s = Math.sin(drive.yaw);
+  cam.position.set(drive.x - c * 1000, drive.y - s * 1000, 620);
+  controls.target.set(drive.x + c * 150, drive.y + s * 150, 150);
+  lastX = drive.x; lastY = drive.y; lastYaw = drive.yaw;
+}
+function followStep() {
+  const dyaw = drive.yaw - lastYaw, c = Math.cos(dyaw), s = Math.sin(dyaw);
+  for (const v of [cam.position, controls.target]) {
+    const rx = v.x - lastX, ry = v.y - lastY;
+    v.x = drive.x + c * rx - s * ry; v.y = drive.y + s * rx + c * ry;
+  }
+  lastX = drive.x; lastY = drive.y; lastYaw = drive.yaw;
+}
+
 // ---------------------------------------------------------------- render loop
 function resize() {
   const w = view.clientWidth, h = view.clientHeight;
@@ -543,6 +777,11 @@ const clock = new THREE.Clock();
 function tick() {
   requestAnimationFrame(tick);
   const dt = Math.min(clock.getDelta(), 0.05);
+  if (rig && !ui.checking) {
+    if (stepDrive(dt)) applyDrive();
+    const b = drive.bump; b.l = Math.max(0, b.l - dt); b.r = Math.max(0, b.r - dt); b.side = Math.max(0, b.side - dt);
+    if (ui.follow) followStep();
+  }
   controls.update();
   if (!rig) { renderer.render(scene, cam); return; }
   if (ui.scanning && !ui.checking) {

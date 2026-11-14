@@ -71,18 +71,30 @@ depends on `lib/`.
 
 ## Browser viewer
 
-`viewer/` is an interactive 3D model of the machine built only from the exported meshes. `make viewer`
-exports every object from `assembly.scad` in its assembled position (pan 0, tilt 0) plus the pivot points
-and gear ratios from `lib/params.scad`; the viewer adds nothing but the motion. `make view` serves it.
+`viewer/` is an interactive 3D model of the rover (driving base + pan/tilt laser and camera gimbal) built only
+from the exported meshes. `make viewer` exports every object in the robot frame (z 0 = floor, +X forward) at
+pan 0 / tilt 0 plus the pivots, gear ratios and robot dimensions; the viewer adds nothing but the motion.
+`make view` serves it.
 
+- **Drive** in an 8 x 8 m room with crates and a target board at laser height: W/S or Up/Down forward/back,
+  A/D or Left/Right turn (or the pad in the scene corner). Differential drive about the axle midpoint, max
+  0.5 m/s and 90 deg/s, 0.5 m/s2 per wheel. Wheels spin by distance / radius; the HUD shows x, y, heading,
+  wheel rpm and encoder counts (1496 per wheel rev). The bumper (circle r 169) stops at walls and crates; the
+  left/right switch (+-40 deg, hits within +-80 deg) lights in the HUD, other contacts show "side/rear
+  contact (no switch)". The laser is off while the robot moves.
+- **Aim at target** solves pan/tilt from the current robot pose (using the real laser exit point) and says
+  "out of reach" when the stops clamp it. **Follow** is a chase camera.
 - Drive pan and tilt; both pinions turn at their real ratios, with motor shaft angles and 1/16 microsteps.
-- A live check shows any part touching another at the current pose.
+- A live check shows any part touching another at the current pose, and the live tip margin.
 - **Run checks** tests the exact triangles: the full range (pan +-174.5 x tilt -19.5..89.5 deg, 5 deg steps,
-  every pair of parts on different moving bodies), both gear meshes over 3 tooth pitches at 1/24-pitch steps,
-  the hard stops 1 deg past each limit (must collide), and a sanity run with the pinions reversed (must
-  clash). Touching faces count as contact, not a hit. Current result: 6/6 pass, about 25 s in a browser.
-- The laser beam is cast into a room with a target board 3 m away; the camera inset shows what a Camera
-  Module 3 (66 x 41 deg) sees, upright, with the dot's pixel position on the 4608 x 2592 sensor.
+  every pair of parts on different moving bodies, robot parts included), both gear meshes over 3 tooth
+  pitches, the hard stops 1 deg past each limit (must collide), a sanity run with the pinions reversed (must
+  clash), each wheel through 360 deg, "stands on its wheels" (tires and caster at z 0, skid >= 2 mm, all else
+  >= 1 mm) and "does not tip over" (centre of gravity vs the tire/caster triangle over the whole pan/tilt
+  range, margin >= 10 mm; printed mass = mesh volume x 1.24 g/cm3 x 0.45, bought parts nominal; table in
+  `viewer/sim.js`). Touching faces count as contact, not a hit. About 30 s in a browser.
+- The camera inset (rides on the payload) shows what a Camera Module 3 (66 x 41 deg) sees, upright, with the
+  dot's pixel position on the 4608 x 2592 sensor.
 
 The page loads three.js 0.160.0 and three-mesh-bvh 0.7.6 from jsDelivr. It uses its own triangle test:
 three-mesh-bvh's reports false hits when a vertex lies exactly on the other triangle's plane (the pinion and
@@ -113,7 +125,7 @@ tools/check_stl.py     STL validator used by make
 tools/interference.sh  collision / mesh / hard-stop / tool-access checks
 tools/viewer_objs.scad assembly objects + kinematics for the viewer (world coordinates, pan 0 / tilt 0)
 tools/export_viewer.sh make viewer: OpenSCAD export -> binary STL (tools/stl2bin.py) + kinematics.json
-viewer/index.html      browser viewer        viewer/sim.js   rig motion + collision checks
+viewer/index.html      browser viewer        viewer/sim.js   rig motion, collision + stability checks
 stl/                   generated STLs        renders/   generated PNGs
 tmp/                   scratch fit checks (gitignored)
 BOM.csv, BOM.md        bill of materials and cost / filament estimate
