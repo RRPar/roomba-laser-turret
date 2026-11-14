@@ -143,5 +143,10 @@ module pan_stage() at_pan() {
     lift(ex_tilt) at_tilt() tilt_group();
 }
 
-static_stage();
-pan_stage();
+// robot.scad `include`s this file (a `use`d file would keep its own pan/tilt/explode) and sets
+// asm_embedded = true so the two calls below do not draw a second gimbal at the origin.
+asm_embedded = false;
+if (!asm_embedded) {
+    static_stage();
+    pan_stage();
+}

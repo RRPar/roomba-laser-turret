@@ -92,6 +92,12 @@ bay_corner_r = 12;
 // vertical tube bosses in the bay, into M3 heat-set inserts in bosses on the base bottom (z 48).
 bay_screw_xy = [[60, 60], [-60, 60], [-60, -60], [60, -60]];
 bay_tube_od  = 9;
+// cable grommet hole through the bay floor (robot base: battery feed up, e-stop motor branch
+// down, Pi USB -> Pico). Sits in the free strip in front of the Pi 5 (y 62..78), beside the
+// fan (x >= 22) and clear of every standoff, tube, rib and anchor; >= 8 mm from both axes
+// (lid seams) and from the lid mount bosses. The lid has the same hole.
+bay_grommet_d  = 16;
+bay_grommet_xy = [30, 70];
 // boards occupy x in [-42.5, 42.5], y in [-58.5, 58.5] (Pi 5 at +Y, SKR Pico at -Y) on standoffs;
 // keep the 4 tubes, the fan and panel parts clear of that zone.
 

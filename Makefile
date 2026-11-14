@@ -3,6 +3,7 @@
 #   make stl/base.stl
 #   make check      validate existing STLs
 #   make renders    assembly PNGs
+#   make robot-renders   robot PNGs (front / inside / exploded)
 #   make interference
 #   make viewer     meshes for the browser viewer (viewer/meshes/)
 #   make view       serve the viewer at http://localhost:8000
@@ -29,6 +30,13 @@ renders: assembly.scad $(PARTS) $(LIBS)
 	$(RENDER) -o renders/assembly_side.png -D pan=0 -D tilt=45 -D show_beam_stop=true --camera=0,0,100,80,0,90,700 assembly.scad
 	$(RENDER) -o renders/exploded.png -D explode=1 -D pan=-20 --camera=0,0,225,72,0,130,1400 assembly.scad
 
+ROBOT_SRC := robot.scad assembly.scad $(PARTS) $(LIBS)
+robot-renders: $(ROBOT_SRC)
+	@mkdir -p renders
+	$(RENDER) -o renders/robot_front.png -D pan=-20 -D tilt=15 --camera=0,0,100,62,0,115,1000 robot.scad
+	$(RENDER) -o renders/robot_inside.png -D show_lid=false --camera=0,0,0,35,0,30,700 robot.scad
+	$(RENDER) -o renders/robot_exploded.png -D explode=1 -D pan=-20 --camera=0,0,330,72,0,130,2900 robot.scad
+
 interference:
 	bash tools/interference.sh
 
@@ -44,4 +52,4 @@ view: viewer/meshes/kinematics.json
 clean:
 	rm -f stl/*.stl
 
-.PHONY: all check renders interference viewer view clean
+.PHONY: all check renders robot-renders interference viewer view clean

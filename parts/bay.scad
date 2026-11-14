@@ -189,6 +189,7 @@ module bay() difference() {
     for (p = bay_screw_xy) tube_cut(p);
     for (p = pi_xy) translate([p[0], p[1], so_top - 7]) cylinder(h = 8, d = m25_tap, $fn = 24);
     for (p = concat(skr_xy, aux_xy)) insert_hole(p);
+    translate([bay_grommet_xy[0], bay_grommet_xy[1], -1]) cylinder(h = bay_floor + 2, d = bay_grommet_d, $fn = 48);
     fan_cut();
     vent_cut();
     panel_cut();

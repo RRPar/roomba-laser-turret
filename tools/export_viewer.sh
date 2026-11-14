@@ -3,7 +3,8 @@
 #  laser-gimbal :: export meshes for the browser viewer   (make viewer)
 #  For every object in tools/viewer_objs.scad: OpenSCAD -> ASCII STL in
 #  world coordinates (pan 0, tilt 0) -> binary STL in viewer/meshes/.
-#  Also writes viewer/meshes/kinematics.json from lib/params.scad.
+#  Gimbal + robot objects, all in the ROBOT frame (gimbal shifted by rb_deck_z; see
+#  tools/viewer_objs.scad). Also writes viewer/meshes/kinematics.json.
 #  usage: tools/export_viewer.sh [-j N]
 # =====================================================================
 set -euo pipefail
@@ -17,7 +18,8 @@ mkdir -p "$W" "$OUT"
 
 OBJS="bay electronics base pan_motor_plate pan_motor pan_pinion
       turntable pan_collar b6810 yoke tilt_motor_plate tilt_motor b608 camlink_deck tilt_pinion
-      payload tilt_gear spacers collars axle laser camera beam_stop"
+      payload tilt_gear spacers collars axle laser camera beam_stop
+      rb_floor rb_lid rb_pillars rb_brackets rb_wheel_l rb_wheel_r rb_motors rb_caster rb_trays rb_bumper rb_electronics"
 
 # kinematics (echo only, no geometry)
 "$OPENSCAD" -o "$W/kin.echo" -D 'obj="kinematics"' tools/viewer_objs.scad 2>/dev/null
