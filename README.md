@@ -55,6 +55,8 @@ make stl/yoke.stl         # one part
 make check                # tools/check_stl.py on existing STLs: watertight, one body, on z = 0, fits the bed
 make renders              # renders/assembly_front.png, assembly_side.png, exploded.png (OpenCSG preview)
 make interference         # tools/interference.sh: pair/pose collision sweep, gear-mesh slices, hard stops, hex-key access
+make viewer               # export the assembly for the browser viewer (viewer/meshes/)
+make view                 # serve the viewer at http://localhost:8000
 make clean                # delete stl/*.stl
 ```
 
@@ -66,6 +68,25 @@ openscad -D pan=30 -D tilt=45 assembly.scad      # -D explode=1, -D show_vitamin
 
 After changing `gear_backlash` (see the gear test in [ASSEMBLY.md](ASSEMBLY.md)), run `make` again: every STL
 depends on `lib/`.
+
+## Browser viewer
+
+`viewer/` is an interactive 3D model of the machine built only from the exported meshes. `make viewer`
+exports every object from `assembly.scad` in its assembled position (pan 0, tilt 0) plus the pivot points
+and gear ratios from `lib/params.scad`; the viewer adds nothing but the motion. `make view` serves it.
+
+- Drive pan and tilt; both pinions turn at their real ratios, with motor shaft angles and 1/16 microsteps.
+- A live check shows any part touching another at the current pose.
+- **Run checks** tests the exact triangles: the full range (pan +-174.5 x tilt -19.5..89.5 deg, 5 deg steps,
+  every pair of parts on different moving bodies), both gear meshes over 3 tooth pitches at 1/24-pitch steps,
+  the hard stops 1 deg past each limit (must collide), and a sanity run with the pinions reversed (must
+  clash). Touching faces count as contact, not a hit. Current result: 6/6 pass, about 25 s in a browser.
+- The laser beam is cast into a room with a target board 3 m away; the camera inset shows what a Camera
+  Module 3 (66 x 41 deg) sees, upright, with the dot's pixel position on the 4608 x 2592 sensor.
+
+The page loads three.js 0.160.0 and three-mesh-bvh 0.7.6 from jsDelivr. It uses its own triangle test:
+three-mesh-bvh's reports false hits when a vertex lies exactly on the other triangle's plane (the pinion and
+wheel end faces share y = 41).
 
 ## File map
 
@@ -90,6 +111,9 @@ parts/gear_test.scad   backlash test coupon (print first)
 assembly.scad          full machine at any pan/tilt, exploded view
 tools/check_stl.py     STL validator used by make
 tools/interference.sh  collision / mesh / hard-stop / tool-access checks
+tools/viewer_objs.scad assembly objects + kinematics for the viewer (world coordinates, pan 0 / tilt 0)
+tools/export_viewer.sh make viewer: OpenSCAD export -> binary STL (tools/stl2bin.py) + kinematics.json
+viewer/index.html      browser viewer        viewer/sim.js   rig motion + collision checks
 stl/                   generated STLs        renders/   generated PNGs
 tmp/                   scratch fit checks (gitignored)
 BOM.csv, BOM.md        bill of materials and cost / filament estimate
@@ -101,7 +125,8 @@ its print orientation on z = 0. Each part file's only top-level statement is `<n
 
 ## Status
 
-All 14 STLs pass `make check`, and `make interference` reports no collisions. Nothing has been printed yet:
+All 14 STLs pass `make check`, `make interference` reports no collisions, and the browser viewer's checks
+pass 6/6. Nothing has been printed yet:
 measure your bearings, motors, camera and boards against `lib/params.scad`, and print `gear_test` first
 to tune `gear_backlash`.
 

@@ -4,6 +4,8 @@
 #   make check      validate existing STLs
 #   make renders    assembly PNGs
 #   make interference
+#   make viewer     meshes for the browser viewer (viewer/meshes/)
+#   make view       serve the viewer at http://localhost:8000
 OPENSCAD ?= openscad
 PARTS := $(wildcard parts/*.scad)
 STLS  := $(patsubst parts/%.scad,stl/%.stl,$(PARTS))
@@ -30,7 +32,16 @@ renders: assembly.scad $(PARTS) $(LIBS)
 interference:
 	bash tools/interference.sh
 
+VIEWER_OBJS := tools/viewer_objs.scad assembly.scad $(PARTS) $(LIBS)
+viewer: viewer/meshes/kinematics.json
+viewer/meshes/kinematics.json: $(VIEWER_OBJS) tools/export_viewer.sh tools/stl2bin.py
+	bash tools/export_viewer.sh
+
+view: viewer/meshes/kinematics.json
+	@echo "open http://localhost:8000  (Ctrl+C to stop)"
+	cd viewer && python3 -m http.server 8000 --bind 127.0.0.1
+
 clean:
 	rm -f stl/*.stl
 
-.PHONY: all check renders interference clean
+.PHONY: all check renders interference viewer view clean
