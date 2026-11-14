@@ -18,14 +18,14 @@ stl/%.stl: parts/%.scad $(LIBS)
 check: $(STLS)
 	python3 -I tools/check_stl.py $(STLS)
 
+# preview (OpenCSG) renders: keep per-part colours; a CGAL --render of the whole
+# machine (3 herringbones) takes many minutes and drops the colours
+RENDER := $(OPENSCAD) -q --imgsize=1400,1100 --colorscheme=Tomorrow
 renders: assembly.scad $(PARTS) $(LIBS)
 	@mkdir -p renders
-	$(OPENSCAD) -q -o renders/assembly_front.png --imgsize=1400,1100 --colorscheme=Tomorrow --render=1 \
-		-D pan=25 -D tilt=15 --camera=0,0,110,62,0,40,620 assembly.scad
-	$(OPENSCAD) -q -o renders/assembly_side.png --imgsize=1400,1100 --colorscheme=Tomorrow --render=1 \
-		-D pan=0 -D tilt=45 --camera=0,0,110,80,0,90,620 assembly.scad
-	$(OPENSCAD) -q -o renders/exploded.png --imgsize=1400,1100 --colorscheme=Tomorrow --render=1 \
-		-D explode=1 --camera=0,0,160,62,0,40,900 assembly.scad
+	$(RENDER) -o renders/assembly_front.png -D pan=-20 -D tilt=15 --camera=0,0,100,62,0,115,680 assembly.scad
+	$(RENDER) -o renders/assembly_side.png -D pan=0 -D tilt=45 -D show_beam_stop=true --camera=0,0,100,80,0,90,700 assembly.scad
+	$(RENDER) -o renders/exploded.png -D explode=1 -D pan=-20 --camera=0,0,225,72,0,130,1400 assembly.scad
 
 interference:
 	bash tools/interference.sh
